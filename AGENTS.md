@@ -1,0 +1,237 @@
+# AGENTS.md — VDP Portal
+
+> **Nguồn chân lý duy nhất** cho toàn bộ quá trình phát triển VDP Portal.
+> Mọi agent (Claude Code, Antigravity, AI khác) đều phải đọc file này trước khi thực thi bất kỳ task nào.
+
+---
+
+## 1. TỔNG QUAN DỰ ÁN
+
+**Tên sản phẩm:** VDP Portal (VNPT Data Platform Portal)
+**Mục tiêu:** Giao diện web thống nhất ("Single Pane of Glass") cho toàn bộ business users và data engineers của VNPT tương tác với VNPT Data Platform — thay thế việc truy cập từng tool riêng lẻ.
+**Domain:** `https://portal.lakehouse.local`
+**Ngôn ngữ output:** Tiếng Việt cho UI labels/messages, tiếng Anh cho technical terms, code, comments, và tên biến.
+
+---
+
+## 2. KIẾN TRÚC HỆ THỐNG
+
+### 2.1 Stack kỹ thuật
+
+| Layer | Công nghệ | Lý do chọn |
+|---|---|---|
+| **Frontend + BFF** | Next.js 15 (App Router) + TypeScript | Server Components tránh CORS; API Routes làm BFF tích hợp sẵn |
+| **Auth** | next-auth v5 (Auth.js) + Keycloak OIDC | Tích hợp native với Keycloak realm `lakehouse` |
+| **UI Components** | shadcn/ui + Tailwind CSS | Không lock-in, customizable, có data table/chart |
+| **State Management** | Zustand (client state) + React Query (server state) | Nhẹ, đủ dùng |
+| **Package Manager** | pnpm | Nhanh hơn npm, monorepo-friendly |
+| **Container** | Docker multi-stage build | Production image < 200MB |
+| **Deploy** | Helm Chart + ArgoCD | Consistent với GitOps pattern của `lakehouse_infra` |
+
+### 2.2 Kiến trúc BFF (Backend-for-Frontend)
+
+```
+[Browser] → https://portal.lakehouse.local
+     │
+     ▼
+[Next.js App - portal.lakehouse.local]
+  ├── /app/*           → Frontend pages (Server + Client Components)
+  ├── /api/airflow/*   → Proxy → http://airflow-webserver.airflow.svc:8080/api/v1
+  ├── /api/trino/*     → Proxy → http://trino.trino.svc:8080/v1
+  ├── /api/nessie/*    → Proxy → http://nessie.nessie.svc:19120/api/v2
+  ├── /api/minio/*     → Proxy → http://minio.minio.svc:9000
+  ├── /api/openmetadata/* → Proxy → http://openmetadata.openmetadata.svc:8585/api/v1
+  ├── /api/jupyter/*   → Proxy → http://hub.jupyter.svc:8081/hub/api
+  ├── /api/volcano/*   → K8s Client SDK (CRD queries)
+  └── /api/spark/*     → K8s Client SDK (SparkApplication CRD)
+```
+
+**Nguyên tắc BFF:**
+- Browser **không bao giờ** gọi thẳng tới domain nội bộ (`*.lakehouse.local` khác portal)
+- Mọi request từ browser đều qua `/api/*` của Next.js
+- BFF kiểm tra Keycloak token trước khi forward xuống internal services
+- BFF chạy trong cluster → gọi ClusterIP DNS, không qua Bastion/Traefik
+
+### 2.3 Cấu trúc thư mục project
+
+```
+vdp-portal/
+├── AGENTS.md                    # File này
+├── Tasks/                       # Task files cho Claude Code
+│   ├── T01-project-scaffold.md
+│   ├── T02-auth-keycloak.md
+│   ├── T03-bff-proxy-layer.md
+│   ├── T04-module-airflow.md
+│   ├── T05-module-openmetadata.md
+│   ├── T06-module-sql-editor.md
+│   ├── T07-module-jupyterhub.md
+│   ├── T08-module-kafka-monitor.md
+│   ├── T09-module-minio-browser.md
+│   ├── T10-module-observability.md
+│   ├── T11-module-spark-jobs.md
+│   ├── T12-rbac-permission.md
+│   └── T13-dashboard-landing.md
+├── src/
+│   ├── app/                     # Next.js App Router pages
+│   │   ├── (auth)/              # Route group: login, callback
+│   │   ├── (dashboard)/         # Route group: main app (protected)
+│   │   │   ├── layout.tsx       # Dashboard shell với sidebar
+│   │   │   ├── page.tsx         # Landing/Overview
+│   │   │   ├── workflows/       # Airflow DAGs
+│   │   │   ├── catalog/         # OpenMetadata
+│   │   │   ├── query/           # SQL Editor (Trino/StarRocks)
+│   │   │   ├── notebooks/       # JupyterHub
+│   │   │   ├── storage/         # MinIO browser
+│   │   │   ├── streams/         # Kafka monitor
+│   │   │   ├── jobs/            # Spark jobs
+│   │   │   ├── observability/   # Grafana embed + metrics
+│   │   │   └── admin/           # User/role management (SuperAdmin only)
+│   │   └── api/                 # BFF API routes
+│   ├── components/
+│   │   ├── ui/                  # shadcn/ui components
+│   │   ├── layout/              # Sidebar, Header, Breadcrumb
+│   │   └── modules/             # Module-specific components
+│   ├── lib/
+│   │   ├── auth.ts              # Auth.js config
+│   │   ├── api-client.ts        # Typed API client wrappers
+│   │   └── k8s-client.ts        # Kubernetes client cho Spark/Volcano CRDs
+│   └── types/                   # TypeScript types toàn project
+├── helm/                        # Helm chart deploy lên K8s
+│   ├── Chart.yaml
+│   ├── values.yaml
+│   └── templates/
+├── Dockerfile
+└── .env.example
+```
+
+---
+
+## 3. THÔNG SỐ KẾT NỐI NỘI BỘ
+
+> **QUAN TRỌNG:** Các giá trị này dùng cho BFF chạy trong cluster (ClusterIP DNS).
+> Không expose ra browser. Lưu trong Kubernetes Secret, đọc qua environment variables.
+
+```bash
+# Keycloak SSO
+KEYCLOAK_ISSUER=https://keycloak.lakehouse.local/realms/lakehouse
+KEYCLOAK_INTERNAL_URL=http://keycloak.keycloak.svc.cluster.local:8080
+KEYCLOAK_REALM=lakehouse
+KEYCLOAK_CLIENT_ID=vdp-portal
+KEYCLOAK_CLIENT_SECRET=vdp-portal-secret-key-2026
+
+# Internal Service URLs (BFF → ClusterIP)
+INTERNAL_AIRFLOW_API=http://airflow-webserver.airflow.svc.cluster.local:8080/api/v1
+INTERNAL_TRINO_URL=http://trino.trino.svc.cluster.local:8080
+INTERNAL_NESSIE_API=http://nessie.nessie.svc.cluster.local:19120/api/v2
+INTERNAL_MINIO_ENDPOINT=http://minio.minio.svc.cluster.local:9000
+INTERNAL_MINIO_ACCESS_KEY=minioadmin
+INTERNAL_MINIO_SECRET_KEY=123123123
+INTERNAL_OPENMETADATA=http://openmetadata.openmetadata.svc.cluster.local:8585/api/v1
+INTERNAL_JUPYTERHUB=http://hub.jupyter.svc.cluster.local:8081/hub/api
+INTERNAL_GRAFANA=http://kube-prometheus-stack-grafana.monitoring.svc.cluster.local:80
+
+# Public URLs (cho redirect/iframe)
+PUBLIC_AIRFLOW_URL=https://airflow.lakehouse.local
+PUBLIC_GRAFANA_URL=https://grafana.lakehouse.local
+PUBLIC_OPENMETADATA_URL=https://openmetadata.lakehouse.local
+PUBLIC_JUPYTERHUB_URL=https://jupyterhub.lakehouse.local
+
+# Portal config
+NEXTAUTH_URL=https://portal.lakehouse.local
+NEXTAUTH_SECRET=<generate-random-32-chars>
+NEXT_PUBLIC_APP_NAME=VDP Portal
+```
+
+---
+
+## 4. RBAC — PHÂN QUYỀN THEO KEYCLOAK ROLES
+
+Roles được sync từ Keycloak realm `lakehouse` thông qua OIDC token claims.
+
+| Keycloak Role | Quyền trên Portal |
+|---|---|
+| `SuperAdmin` | Toàn quyền — bao gồm trang Admin quản lý users/roles |
+| `Admin` | Tất cả modules trừ trang Admin system |
+| `Op` | Airflow trigger/monitor, Spark jobs, Observability |
+| `DE` (Data Engineer) | Workflows, SQL Editor, Notebooks, Storage, Spark, Catalog |
+| `DS` (Data Scientist) | Notebooks, SQL Editor, Storage, Catalog |
+| `DA` (Data Analyst) | SQL Editor (read), Catalog, Observability (read) |
+| `BA` (Business Analyst) | Dashboard overview, Catalog (read only) |
+| `PM` | Dashboard overview, Observability (read) |
+| `Viewer` | Dashboard overview only |
+
+**Implementation:** Middleware Next.js kiểm tra role từ session trước mỗi route trong `(dashboard)/`.
+
+---
+
+## 5. QUY ƯỚC CODE
+
+### 5.1 Naming conventions
+- **Files/Folders:** kebab-case (`sql-editor.tsx`, `api-client.ts`)
+- **Components:** PascalCase (`SqlEditor`, `DagTable`)
+- **Functions/Variables:** camelCase (`fetchDagList`, `currentUser`)
+- **Constants:** UPPER_SNAKE_CASE (`MAX_QUERY_TIMEOUT`)
+- **Types/Interfaces:** PascalCase với prefix I cho interface (`IDagRun`, `type DagStatus`)
+
+### 5.2 API Routes pattern
+```
+/api/{module}/{resource}
+/api/airflow/dags          → GET list DAGs
+/api/airflow/dags/{id}     → GET single DAG
+/api/airflow/dags/{id}/runs → GET DAG runs
+/api/airflow/dags/{id}/trigger → POST trigger DAG
+/api/trino/query           → POST execute SQL
+/api/trino/query/{id}      → GET query status
+```
+
+### 5.3 Error handling
+- Mọi API route trả về `{ success: boolean, data?: T, error?: string }`
+- HTTP status codes chuẩn: 200, 201, 400, 401, 403, 404, 500
+- Log lỗi ở BFF, không expose stack trace ra client
+
+### 5.4 Authentication pattern
+```typescript
+// Mọi API route protected đều bắt đầu bằng:
+const session = await auth()
+if (!session) return Response.json({ error: 'Unauthorized' }, { status: 401 })
+
+// Check role:
+if (!hasRole(session, ['DE', 'Admin', 'SuperAdmin'])) {
+  return Response.json({ error: 'Forbidden' }, { status: 403 })
+}
+```
+
+---
+
+## 6. TIỀN ĐIỀU KIỆN INFRA (PHẢI HOÀN THÀNH TRƯỚC KHI BUILD)
+
+> Đây là việc của Infrastructure Team, không phải Claude Code.
+
+- [ ] **PR-1:** Thêm Keycloak client `vdp-portal` vào `rke2/keycloak/manifests/realm-import.yaml`
+- [ ] **PR-2:** Enable `AIRFLOW__WEBSERVER__X_FRAME_ENABLED=True` trong Airflow values
+- [ ] **PR-3:** Enable `allow_embedding: true` trong Grafana values
+- [ ] **PR-4:** Enable OIDC cho OpenMetadata trong `values-production.yaml`
+- [ ] **PR-5:** Tạo thư mục `rke2/vdp_portal/` với `argocd-application.yaml` skeleton
+
+---
+
+## 7. ĐỊNH NGHĨA "DONE" CHO MỖI MODULE
+
+Một module được coi là **Done** khi:
+1. API route trả về data thực từ service (không mock)
+2. UI hiển thị đúng với data thực
+3. RBAC check hoạt động — role không đủ quyền thấy màn hình 403
+4. Loading state và error state được xử lý
+5. TypeScript không có `any` type (dùng `unknown` nếu cần)
+6. Không có `console.log` trong production code
+
+---
+
+## 8. NHỮNG GÌ KHÔNG LÀM
+
+- **Không** gọi API nội bộ từ client-side (browser) — luôn qua BFF
+- **Không** hardcode credentials trong source code — dùng env vars
+- **Không** implement auth system tự xây — dùng Auth.js + Keycloak
+- **Không** dùng `any` type trong TypeScript
+- **Không** build feature admin Kubernetes (Rancher/Longhorn) — out of scope
+- **Không** implement real-time streaming (WebSocket) ở phase 1

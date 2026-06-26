@@ -1,0 +1,37 @@
+replicaCount: 2
+
+image:
+  repository: registry.lakehouse.local/vdp-portal
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 3000
+
+ingress:
+  enabled: true
+  className: traefik
+  annotations:
+    cert-manager.io/cluster-issuer: lakehouse-ca
+  hosts:
+    - host: portal.lakehouse.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: vdp-portal-tls
+      hosts:
+        - portal.lakehouse.local
+
+resources:
+  requests:
+    cpu: 200m
+    memory: 256Mi
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+
+envFrom:
+  - secretRef:
+      name: vdp-portal-env
