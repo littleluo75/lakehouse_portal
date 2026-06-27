@@ -113,8 +113,8 @@ Cột: Group ID | Trạng thái | Topics | Total Lag
 - Click group → xem lag per partition
 
 ## Kiểm tra hoàn thành
-- [ ] Xác định được kịch bản (A/B/C) từ repo infra — ghi vào comment đầu file
+- [x] Xác định được kịch bản (A/B/C) từ repo infra — ghi vào comment đầu file
 - [ ] Kịch bản A/B: Topics table hiển thị dữ liệu thực
 - [ ] Kịch bản A/B: Consumer groups + lag hiển thị
-- [ ] Kịch bản C: Placeholder page render không lỗi
-- [ ] `pnpm build` không lỗi
+- [x] Kịch bản C: Placeholder page render không lỗi
+- [x] `pnpm build` không lỗi — build thành công 29/29 pages (2026-06-28)

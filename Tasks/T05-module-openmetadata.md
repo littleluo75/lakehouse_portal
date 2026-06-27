@@ -99,10 +99,10 @@ Mỗi card hiển thị:
 - Search filter theo tên
 
 ## Kiểm tra hoàn thành
-- [ ] Search trả về kết quả thực từ OpenMetadata
-- [ ] Filter sidebar thu hẹp kết quả đúng
-- [ ] Table detail hiển thị đúng columns
-- [ ] Lineage tab hiển thị (iframe hoặc text fallback)
-- [ ] Basic Auth credentials không xuất hiện trong browser Network tab
-- [ ] Loading skeleton + empty state
-- [ ] `pnpm build` không lỗi
+- [x] Search trả về kết quả thực từ OpenMetadata
+- [x] Filter sidebar thu hẹp kết quả đúng
+- [x] Table detail hiển thị đúng columns
+- [x] Lineage tab hiển thị (iframe hoặc text fallback)
+- [x] Basic Auth credentials không xuất hiện trong browser Network tab
+- [x] Loading skeleton + empty state
+- [x] `pnpm build` không lỗi

@@ -133,4 +133,4 @@ function validateQuery(sql: string, roles: string[]): { allowed: boolean; reason
 - [ ] Export CSV download đúng file
 - [ ] Schema browser load catalogs/schemas/tables
 - [ ] Query history lưu và load lại được
-- [ ] `pnpm build` không lỗi
+- [x] `pnpm build` không lỗi

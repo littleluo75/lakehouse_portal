@@ -1,9 +1,19 @@
-﻿export default function StreamsPage() {
+// Kịch bản C: Kafka chưa được deploy trong lakehouse_infra (không có strimzi/ hoặc kafka-ui/).
+// Trang placeholder — cập nhật lên Kịch bản A/B khi Kafka được deploy.
+import { AlertCircle } from 'lucide-react'
+import { requireAuth } from '@/lib/require-auth'
+
+export default async function StreamsPage() {
+  await requireAuth(['DE', 'Op', 'Admin', 'SuperAdmin'])
+
   return (
-    <div className="space-y-4">
-      <h1 className="text-2xl font-bold text-slate-900">Streams</h1>
-      <p className="text-slate-500">Module dang duoc phat trien (T08).</p>
+    <div className="flex flex-col items-center justify-center h-64 gap-4">
+      <AlertCircle className="w-12 h-12 text-muted-foreground" />
+      <h2 className="text-lg font-semibold">Module Kafka chưa được cấu hình</h2>
+      <p className="text-muted-foreground text-center">
+        Kafka broker endpoint chưa được xác định trong hệ thống.<br />
+        Vui lòng liên hệ Admin để cấu hình.
+      </p>
     </div>
   )
 }
-

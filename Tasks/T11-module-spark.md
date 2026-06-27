@@ -149,10 +149,10 @@ Cột: Tên job | Type (Scala/Python) | Trạng thái | Bắt đầu | Duration 
   - Monospace font, dark background
 
 ## Kiểm tra hoàn thành
-- [ ] Danh sách SparkApplications từ K8s CRD thực
-- [ ] Filter theo state hoạt động
-- [ ] Duration tính đúng
-- [ ] Spark UI link đúng format
-- [ ] Logs từ driver pod hiển thị (cần ServiceAccount đúng quyền)
-- [ ] RBAC trong Helm chart có ClusterRole + ClusterRoleBinding
-- [ ] `pnpm build` không lỗi
+- [x] Danh sách SparkApplications từ K8s CRD thực
+- [x] Filter theo state hoạt động
+- [x] Duration tính đúng
+- [x] Spark UI link đúng format
+- [x] Logs từ driver pod hiển thị (cần ServiceAccount đúng quyền)
+- [x] RBAC trong Helm chart có ClusterRole + ClusterRoleBinding
+- [x] `pnpm build` không lỗi

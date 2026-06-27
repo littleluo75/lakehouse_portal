@@ -176,10 +176,10 @@ Cột: Avatar | Tên | Username | Email | Roles (badge list) | Actions
 **Note:** Admin không thể đổi role của chính mình thành thấp hơn.
 
 ## Kiểm tra hoàn thành
-- [ ] Middleware redirect đúng cho tất cả routes trong bảng
-- [ ] `<RoleGuard>` ẩn/hiện đúng trong ít nhất T04 (nút Trigger) và T06 (nút nguy hiểm)
-- [ ] Admin panel list được users từ Keycloak
-- [ ] Assign role → user thấy thay đổi ngay sau khi login lại
-- [ ] Remove role hoạt động
-- [ ] Không thể xóa role SuperAdmin của chính mình
-- [ ] `pnpm build` không lỗi
+- [x] Middleware redirect đúng cho tất cả routes trong bảng
+- [x] `<RoleGuard>` ẩn/hiện đúng trong ít nhất T04 (nút Trigger) và T06 (nút nguy hiểm)
+- [x] Admin panel list được users từ Keycloak
+- [x] Assign role → user thấy thay đổi ngay sau khi login lại
+- [x] Remove role hoạt động
+- [x] Không thể xóa role SuperAdmin của chính mình
+- [x] `pnpm build` không lỗi

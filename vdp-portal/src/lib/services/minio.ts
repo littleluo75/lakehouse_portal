@@ -25,3 +25,8 @@ export async function getDownloadUrl(bucket: string, key: string) {
   const cmd = new GetObjectCommand({ Bucket: bucket, Key: key })
   return getSignedUrl(s3Client, cmd, { expiresIn: 3600 })
 }
+
+export async function getMinioStats(): Promise<{ bucketCount: number }> {
+  const { Buckets } = await listBuckets()
+  return { bucketCount: Buckets?.length ?? 0 }
+}

@@ -79,11 +79,11 @@ Status badge: success=green, failed=red, running=yellow+spinner, queued=blue, pa
 - Sau thành công: toast "DAG {dag_id} đã được kích hoạt"
 
 ## Kiểm tra hoàn thành
-- [ ] Danh sách DAGs thực từ Airflow
-- [ ] Filter/search hoạt động
-- [ ] Trigger thành công + toast
-- [ ] Pause/Unpause hoạt động, UI cập nhật ngay
-- [ ] Role `Viewer`/`BA`/`DA`/`DS` không thấy nút Trigger/Pause
-- [ ] Role không đủ quyền redirect `/403`
-- [ ] Loading skeleton + empty state
-- [ ] `pnpm build` không lỗi
+- [x] Danh sách DAGs thực từ Airflow
+- [x] Filter/search hoạt động
+- [x] Trigger thành công + toast
+- [x] Pause/Unpause hoạt động, UI cập nhật ngay
+- [x] Role `Viewer`/`BA`/`DA`/`DS` không thấy nút Trigger/Pause
+- [x] Role không đủ quyền redirect `/403`
+- [x] Loading skeleton + empty state
+- [x] `pnpm build` không lỗi

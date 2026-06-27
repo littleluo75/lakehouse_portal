@@ -96,16 +96,16 @@ Sau khi xong: chạy `pnpm build`, tick checklist.
 ## T08 — Module Kafka
 
 ```
-Đọc AGENTS.md và Tasks/T08-module-kafka.md.
+
+```
+
+---Đọc AGENTS.md và Tasks/T08-module-kafka.md.
 
 T01, T02, T03 đã hoàn thành. Thực thi T08: module Streams (Kafka Monitor).
 
 Bước đầu tiên: tìm trong repo lakehouse_infra xem Kafka đã được deploy chưa và theo kịch bản nào (A/B/C như mô tả trong task file). Báo cáo kịch bản trước khi code.
 
 Sau khi xong: chạy `pnpm build`, tick checklist.
-```
-
----
 
 ## T09 — Module MinIO
 

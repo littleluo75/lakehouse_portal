@@ -142,12 +142,12 @@ const QUICK_ACTIONS: { label: string; icon: string; href: string; roles: Keycloa
 Hiển thị max 4 actions phù hợp với role hiện tại, dạng button cards.
 
 ## Kiểm tra hoàn thành
-- [ ] Stats cards hiển thị data thực (không mock)
-- [ ] Cards load độc lập — card nào xong hiển thị trước
-- [ ] Health grid auto-refresh mỗi 60 giây
-- [ ] Health status phản ánh đúng trạng thái service
-- [ ] Recent activity đúng với từng role
-- [ ] Quick actions chỉ hiện actions phù hợp với role
-- [ ] Layout responsive tại 1280px và 1920px
-- [ ] Không có layout shift khi data load xong
-- [ ] `pnpm build` không lỗi
+- [x] Stats cards hiển thị data thực (không mock)
+- [x] Cards load độc lập — card nào xong hiển thị trước
+- [x] Health grid auto-refresh mỗi 60 giây
+- [x] Health status phản ánh đúng trạng thái service
+- [x] Recent activity đúng với từng role
+- [x] Quick actions chỉ hiện actions phù hợp với role
+- [x] Layout responsive tại 1280px và 1920px
+- [x] Không có layout shift khi data load xong
+- [x] `pnpm build` không lỗi

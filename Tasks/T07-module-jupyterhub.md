@@ -76,10 +76,10 @@ Nút "Khởi động" → gọi POST, chuyển sang trạng thái `starting`.
 - Note: "Workspace sẽ tự động tắt sau 8 giờ không hoạt động"
 
 ## Kiểm tra hoàn thành
-- [ ] Hiển thị đúng trạng thái server (stopped/starting/running)
-- [ ] Start server → chuyển sang starting → poll → running
-- [ ] Nút "Mở JupyterLab" mở đúng URL trong tab mới
-- [ ] Stop server → confirm → stopped
-- [ ] Profile Large không hiện với role `DE`
-- [ ] Role `BA`/`Viewer`/`DA`/`Op`/`PM` redirect `/403`
-- [ ] `pnpm build` không lỗi
+- [x] Hiển thị đúng trạng thái server (stopped/starting/running)
+- [x] Start server → chuyển sang starting → poll → running
+- [x] Nút "Mở JupyterLab" mở đúng URL trong tab mới
+- [x] Stop server → confirm → stopped
+- [x] Profile Large không hiện với role `DE`
+- [x] Role `BA`/`Viewer`/`DA`/`Op`/`PM` redirect `/403`
+- [x] `pnpm build` không lỗi
