@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { cn } from '@/lib/utils'
+import { apiCall } from '@/lib/api-client'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -41,11 +42,9 @@ export function SparkJobDrawer({ app, open, onClose }: SparkJobDrawerProps) {
     queryKey: ['spark-logs', app?.metadata.name, logsKey],
     queryFn: async () => {
       const ns = app!.metadata.namespace
-      const res = await fetch(
-        `/api/spark/applications/${app!.metadata.name}/logs?namespace=${ns}&lines=100`
+      const json = await apiCall<{ success: boolean; data: { logs: string } }>(
+        `/spark/applications/${app!.metadata.name}/logs?namespace=${ns}&lines=100`
       )
-      if (!res.ok) throw new Error('Không thể tải logs')
-      const json = await res.json() as { success: boolean; data: { logs: string } }
       return json.data.logs
     },
     enabled: !!app && open,

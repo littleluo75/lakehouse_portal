@@ -1,9 +1,9 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "vdp-portal.fullname" . }}
+  name: {{ include "data-lighthouse.fullname" . }}
   labels:
-    {{- include "vdp-portal.labels" . | nindent 4 }}
+    {{- include "data-lighthouse.labels" . | nindent 4 }}
 spec:
   type: {{ .Values.service.type }}
   ports:
@@ -11,4 +11,4 @@ spec:
       targetPort: 3000
       protocol: TCP
   selector:
-    {{- include "vdp-portal.selectorLabels" . | nindent 4 }}
+    {{- include "data-lighthouse.selectorLabels" . | nindent 4 }}

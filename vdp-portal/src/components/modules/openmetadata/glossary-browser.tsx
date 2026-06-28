@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import type { GlossaryTermsResponse } from '@/types/openmetadata'
 import type { ApiResponse } from '@/types'
+import { apiCall } from '@/lib/api-client'
 
 export function GlossaryBrowser() {
   const router = useRouter()
@@ -16,10 +17,8 @@ export function GlossaryBrowser() {
   const { data, isLoading, error } = useQuery({
     queryKey: ['om-glossary'],
     queryFn: async () => {
-      const res = await fetch('/api/openmetadata/glossary')
-      if (!res.ok) throw new Error('Không thể tải glossary')
-      const json = await res.json() as ApiResponse<GlossaryTermsResponse>
-      return json.data
+      const res = await apiCall<ApiResponse<GlossaryTermsResponse>>('/openmetadata/glossary')
+      return res.data
     },
     staleTime: 60_000,
   })

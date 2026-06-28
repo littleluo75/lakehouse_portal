@@ -9,18 +9,18 @@ import {
   WorkflowIcon,
 } from 'lucide-react'
 import { useCurrentUser } from '@/hooks/use-current-user'
+import { apiFetch } from '@/lib/api-client'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
 import {
   Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,
 } from '@/components/ui/tooltip'
 import type { DashboardSummary, DashboardHealth } from '@/types/dashboard'
-import type { ApiResponse, KeycloakRole } from '@/types'
+import type { KeycloakRole } from '@/types'
 import type { QueryHistoryItem } from '@/types/sql'
 
-const HISTORY_KEY = 'vdp_query_history'
+const HISTORY_KEY = 'lighthouse-portal_query_history'
 
 const ROLE_COLORS: Record<string, string> = {
   SuperAdmin: 'bg-red-100 text-red-700',
@@ -82,7 +82,19 @@ function StatCard({
 }
 
 function HealthDot({ health, lastChecked }: { health: DashboardHealth; lastChecked: Date | null }) {
-  const secAgo = lastChecked ? Math.floor((Date.now() - lastChecked.getTime()) / 1000) : null
+  const [secAgo, setSecAgo] = useState<number | null>(null)
+
+  useEffect(() => {
+    if (!lastChecked) {
+      queueMicrotask(() => setSecAgo(null))
+      return
+    }
+    const update = () => setSecAgo(Math.floor((Date.now() - lastChecked.getTime()) / 1000))
+    queueMicrotask(update)
+    const timer = setInterval(update, 5000)
+    return () => clearInterval(timer)
+  }, [lastChecked])
+
   const tooltipText = [
     health.status === 'down' && health.error ? health.error
       : health.status === 'degraded' ? `Degraded${health.latencyMs ? ` (${health.latencyMs}ms)` : ''}`
@@ -142,26 +154,26 @@ export function DashboardClient() {
   const [lastChecked, setLastChecked] = useState<Date | null>(null)
   const [queryHistory, setQueryHistory] = useState<QueryHistoryItem[]>([])
 
-  const { data, isLoading, refetch } = useQuery({
+  const { data, isLoading, refetch: reload } = useQuery({
     queryKey: ['dashboard-summary'],
     queryFn: async () => {
-      const res = await fetch('/api/dashboard/summary')
-      if (!res.ok) throw new Error('Failed to load dashboard')
-      const json = await res.json() as ApiResponse<DashboardSummary>
+      const res = await apiFetch<{ success: boolean; data: DashboardSummary }>('/dashboard/summary')
       setLastChecked(new Date())
-      return json.data!
+      return res.data!
     },
     refetchInterval: 60_000,
     staleTime: 30_000,
   })
 
   useEffect(() => {
-    try {
-      const stored = JSON.parse(localStorage.getItem(HISTORY_KEY) ?? '[]') as QueryHistoryItem[]
-      setQueryHistory(stored.slice(0, 5))
-    } catch {
-      setQueryHistory([])
-    }
+    queueMicrotask(() => {
+      try {
+        const stored = JSON.parse(localStorage.getItem(HISTORY_KEY) ?? '[]') as QueryHistoryItem[]
+        setQueryHistory(stored.slice(0, 5))
+      } catch {
+        setQueryHistory([])
+      }
+    })
   }, [])
 
   const today = new Date().toLocaleDateString('vi-VN', {
@@ -201,7 +213,7 @@ export function DashboardClient() {
                 {primaryRole}
               </span>
             )}
-            <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isLoading}>
+            <Button variant="outline" size="sm" onClick={() => reload()} disabled={isLoading}>
               <RefreshCwIcon className={`size-4 ${isLoading ? 'animate-spin' : ''}`} />
             </Button>
           </div>
@@ -265,6 +277,53 @@ export function DashboardClient() {
             </div>
           )}
         </div>
+
+        {/* K8s Cluster Stats */}
+        {data?.clusterStats && (
+          <div>
+            <h2 className="mb-3 text-base font-semibold text-slate-800 flex items-center gap-2">
+              <ServerIcon className="size-4 text-slate-500" />
+              <span>K8s Cluster Stats</span>
+              {!data.clusterStats.connected && (
+                <span className="text-xs font-normal text-yellow-600 bg-yellow-50 border border-yellow-200 px-2 py-0.5 rounded-full">
+                  Không khả dụng
+                </span>
+              )}
+            </h2>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-xs font-medium text-slate-500">Nodes</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-xl font-bold text-slate-800">
+                    {data.clusterStats.nodeCount !== null ? `${data.clusterStats.nodeCount} nodes` : 'Không khả dụng'}
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-xs font-medium text-slate-500">CPU Capacity</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-xl font-bold text-slate-800">
+                    {data.clusterStats.cpuCapacity !== null ? data.clusterStats.cpuCapacity : 'Không khả dụng'}
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-xs font-medium text-slate-500">Memory Capacity</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-xl font-bold text-slate-800">
+                    {data.clusterStats.memoryCapacity !== null ? data.clusterStats.memoryCapacity : 'Không khả dụng'}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        )}
 
         {/* Recent Activity — role-filtered */}
         <div>
@@ -336,7 +395,7 @@ export function DashboardClient() {
             </div>
           )}
 
-          {isAnalyst && !canViewActivity && (
+          {(isAnalyst || queryHistory.length > 0) && (
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="flex items-center gap-2 text-sm">

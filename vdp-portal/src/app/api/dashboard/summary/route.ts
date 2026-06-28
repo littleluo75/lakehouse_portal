@@ -1,9 +1,9 @@
 import { validateApiAuth } from '@/lib/api-auth'
-import { listSparkApplications } from '@/lib/services/k8s'
+import { listSparkApplications, coreApi } from '@/lib/services/k8s'
 import { getMinioStats } from '@/lib/services/minio'
 import { hasRole } from '@/lib/utils'
 import type { SparkApplication } from '@/types/spark'
-import type { DashboardHealth, RecentDagRun, RecentSparkJob } from '@/types/dashboard'
+import type { ClusterStats, DashboardHealth, RecentDagRun, RecentSparkJob } from '@/types/dashboard'
 
 const TIMEOUT_MS = 5000
 const DEGRADED_LATENCY_MS = 500
@@ -69,7 +69,7 @@ export async function GET() {
     { name: 'OpenMetadata', url: `${process.env.INTERNAL_OPENMETADATA ?? ''}/system/status` },
     { name: 'MinIO', url: `${process.env.INTERNAL_MINIO_ENDPOINT ?? ''}/minio/health/live` },
     { name: 'JupyterHub', url: jupyterBase.replace('/hub/api', '/hub/health') },
-    { name: 'StarRocks', url: process.env.STARROCKS_FE_HOST ? `http://${process.env.STARROCKS_FE_HOST}:8030/api/health` : '' },
+    { name: 'StarRocks', url: process.env.STARROCKS_HOST ? `http://${process.env.STARROCKS_HOST}:8030/api/health` : '' },
   ]
 
   const healthResults = await Promise.allSettled(
@@ -119,6 +119,26 @@ export async function GET() {
     recentSparkJobs = sparkJobsResult.status === 'fulfilled' ? sparkJobsResult.value : null
   }
 
+  let clusterStats: ClusterStats
+  try {
+    const nodesRes = await coreApi.listNode()
+    const nodes = nodesRes.items ?? []
+    clusterStats = {
+      connected: true,
+      nodeCount: nodes.length,
+      cpuCapacity: nodes.reduce((acc, n) => acc + parseInt(n.status?.capacity?.cpu ?? '0', 10), 0) + ' cores',
+      memoryCapacity: Math.round(nodes.reduce((acc, n) => acc + parseInt(n.status?.capacity?.memory ?? '0', 10) / (1024 * 1024), 0)) + ' GB',
+    }
+  } catch (err) {
+    console.error('[Dashboard] Không thể lấy thông tin nodes K8s:', err)
+    clusterStats = {
+      connected: false,
+      nodeCount: null,
+      cpuCapacity: null,
+      memoryCapacity: null,
+    }
+  }
+
   return Response.json({
     success: true,
     data: {
@@ -130,6 +150,7 @@ export async function GET() {
       },
       health,
       activity: { recentDagRuns, recentSparkJobs },
+      clusterStats,
     },
   })
 }

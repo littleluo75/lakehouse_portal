@@ -21,9 +21,13 @@ export async function listObjects(bucket: string, prefix?: string) {
   return s3Client.send(cmd)
 }
 
-export async function getDownloadUrl(bucket: string, key: string) {
+export async function getDownloadUrl(
+  bucket: string,
+  key: string,
+  expiresIn = 900, // default 15 phút
+) {
   const cmd = new GetObjectCommand({ Bucket: bucket, Key: key })
-  return getSignedUrl(s3Client, cmd, { expiresIn: 3600 })
+  return getSignedUrl(s3Client, cmd, { expiresIn })
 }
 
 export async function getMinioStats(): Promise<{ bucketCount: number }> {

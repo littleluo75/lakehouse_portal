@@ -1,7 +1,7 @@
 replicaCount: 2
 
 image:
-  repository: registry.lakehouse.local/vdp-portal
+  repository: registry.lakehouse.local/data-lighthouse
   tag: latest
   pullPolicy: IfNotPresent
 
@@ -20,7 +20,7 @@ ingress:
         - path: /
           pathType: Prefix
   tls:
-    - secretName: vdp-portal-tls
+    - secretName: data-lighthouse-tls
       hosts:
         - portal.lakehouse.local
 
@@ -34,4 +34,53 @@ resources:
 
 envFrom:
   - secretRef:
-      name: vdp-portal-env
+      name: data-lighthouse-env
+
+# --- Keycloak ---
+keycloak:
+  issuer: "https://keycloak.lakehouse.local/realms/lakehouse"
+  internalUrl: "http://keycloak.keycloak.svc.cluster.local:8080"
+  realm: "lakehouse"
+  clientId: "vdp-portal"
+  clientSecret: ""          # điền qua --set hoặc external secret
+
+# --- NextAuth (NextAuth v5 dùng AUTH_SECRET, không phải NEXTAUTH_SECRET) ---
+nextauth:
+  url: "https://portal.lakehouse.local"
+  secret: ""                # điền qua --set hoặc external secret
+
+# --- Internal Services ---
+services:
+  airflow:
+    apiUrl: "http://airflow-webserver.airflow.svc.cluster.local:8080/api/v1"
+    publicUrl: "https://airflow.lakehouse.local"
+  trino:
+    url: "http://trino.trino.svc.cluster.local:8080"
+    publicUrl: "https://trino.lakehouse.local"
+  nessie:
+    apiUrl: "http://nessie.nessie.svc.cluster.local:19120/api/v2"
+  minio:
+    endpoint: "http://minio.minio.svc.cluster.local:9000"
+    accessKey: "minioadmin"
+    secretKey: ""           # điền qua --set
+    publicUrl: "https://minio.lakehouse.local"
+  openmetadata:
+    apiUrl: "http://openmetadata.openmetadata.svc.cluster.local:8585/api/v1"
+    publicUrl: "https://openmetadata.lakehouse.local"
+    username: "admin"
+    password: ""            # điền qua --set
+  jupyterhub:
+    apiUrl: "http://hub.jupyter.svc.cluster.local:8081/hub/api"
+    publicUrl: "https://jupyterhub.lakehouse.local"
+  grafana:
+    internalUrl: "http://kube-prometheus-stack-grafana.monitoring.svc.cluster.local:80"
+    publicUrl: "https://grafana.lakehouse.local"
+    adminUser: "admin"
+    adminPassword: ""       # điền qua --set
+  starrocks:
+    host: "starrocks-fe-service.starrocks.svc.cluster.local"
+    port: "9030"
+    user: "root"
+    password: ""            # điền qua --set
+  kafka:
+    broker: ""              # điền nếu dùng

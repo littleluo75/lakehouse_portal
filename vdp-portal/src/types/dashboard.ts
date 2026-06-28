@@ -34,8 +34,16 @@ export interface DashboardActivity {
   recentSparkJobs: RecentSparkJob[] | null
 }
 
+export interface ClusterStats {
+  connected: boolean
+  nodeCount: number | null
+  cpuCapacity: string | null
+  memoryCapacity: string | null
+}
+
 export interface DashboardSummary {
   stats: DashboardStats
   health: DashboardHealth[]
   activity: DashboardActivity
+  clusterStats?: ClusterStats | null
 }

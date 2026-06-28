@@ -116,7 +116,7 @@ Hoạt động gần đây
 
 **DA / DS:**
 ```
-Query gần đây: load từ localStorage key `vdp_query_history`
+Query gần đây: load từ localStorage key `lighthouse-portal_query_history`
 (5 queries gần nhất — snippet + thời gian)
 ```
 

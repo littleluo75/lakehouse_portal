@@ -1,13 +1,7 @@
 import { validateApiAuth } from '@/lib/api-auth'
-import { createInternalClient } from '@/lib/internal-client'
 import { handleApiError } from '@/lib/api-error-handler'
+import { openmetadataClient as omClient } from '@/lib/services'
 import type { OmTablesResponse } from '@/types/openmetadata'
-
-const omClient = createInternalClient({
-  baseUrl: process.env.INTERNAL_OPENMETADATA ?? '',
-  authType: 'basic',
-  basicCredentials: { username: 'admin', password: 'admin' },
-})
 
 export async function GET() {
   const { session, error } = await validateApiAuth(['DE', 'DS', 'DA', 'BA', 'Admin', 'SuperAdmin'])

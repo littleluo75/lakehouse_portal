@@ -8,6 +8,7 @@ declare module 'next-auth' {
     accessToken: string
     refreshToken: string
     expiresAt: number
+    error?: 'RefreshAccessTokenError'
   }
 }
 
@@ -42,6 +43,20 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
 
     async session({ session, token }) {
+      // Refresh thất bại → báo lỗi để client buộc re-login, xóa token hết hạn
+      if (token.error === 'RefreshAccessTokenError') {
+        return {
+          ...session,
+          error: 'RefreshAccessTokenError' as const,
+          accessToken: '',
+          user: {
+            ...session.user,
+            roles: [],
+            accessToken: '',
+          },
+        }
+      }
+
       session.accessToken = token.accessToken as string
       session.refreshToken = token.refreshToken as string
       session.expiresAt = token.expiresAt as number

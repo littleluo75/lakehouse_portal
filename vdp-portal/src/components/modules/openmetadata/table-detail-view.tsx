@@ -13,6 +13,7 @@ import {
   ExternalLinkIcon,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { apiCall } from '@/lib/api-client'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -91,10 +92,8 @@ function LineageTab({ tableId, fqn }: { tableId: string; fqn: string }) {
   const { data: lineageData, isLoading, error } = useQuery({
     queryKey: ['om-lineage', tableId],
     queryFn: async () => {
-      const res = await fetch(`/api/openmetadata/lineage/${tableId}`)
-      if (!res.ok) throw new Error('Không thể tải lineage')
-      const json = await res.json() as ApiResponse<LineageData>
-      return json.data
+      const res = await apiCall<ApiResponse<LineageData>>(`/openmetadata/lineage/${tableId}`)
+      return res.data
     },
   })
 
@@ -186,10 +185,8 @@ function GlossaryTab({ tags }: { tags: DataAsset['tags'] }) {
   const { data: glossaryData, isLoading } = useQuery({
     queryKey: ['om-glossary'],
     queryFn: async () => {
-      const res = await fetch('/api/openmetadata/glossary')
-      if (!res.ok) throw new Error('Không thể tải glossary')
-      const json = await res.json() as ApiResponse<GlossaryTermsResponse>
-      return json.data
+      const res = await apiCall<ApiResponse<GlossaryTermsResponse>>('/openmetadata/glossary')
+      return res.data
     },
     staleTime: 60_000,
   })
@@ -253,10 +250,8 @@ export function TableDetailView({ id }: { id: string }) {
   const { data: tableData, isLoading, error } = useQuery({
     queryKey: ['om-table', id],
     queryFn: async () => {
-      const res = await fetch(`/api/openmetadata/tables/${id}`)
-      if (!res.ok) throw new Error('Không thể tải thông tin table')
-      const json = await res.json() as ApiResponse<DataAsset>
-      return json.data
+      const res = await apiCall<ApiResponse<DataAsset>>(`/openmetadata/tables/${id}`)
+      return res.data
     },
   })
 

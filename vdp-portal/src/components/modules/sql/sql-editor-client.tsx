@@ -10,11 +10,12 @@ import { Button } from '@/components/ui/button'
 import { RoleGuard } from '@/components/role-guard'
 import { SchemaBrowser } from './schema-browser'
 import { ResultsPanel } from './results-panel'
+import { apiCall } from '@/lib/api-client'
 import type { SqlEngine, QueryResult, QueryHistoryItem } from '@/types/sql'
 
 const CodeMirror = dynamic(() => import('@uiw/react-codemirror'), { ssr: false })
 
-const HISTORY_KEY = 'vdp_query_history'
+const HISTORY_KEY = 'lighthouse-portal_query_history'
 const MAX_HISTORY = 20
 
 const queryClient = new QueryClient()
@@ -50,7 +51,9 @@ function SqlEditorInner() {
   const elapsedTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   useEffect(() => {
-    setHistory(loadHistory())
+    queueMicrotask(() => {
+      setHistory(loadHistory())
+    })
   }, [])
 
   useEffect(() => {
@@ -73,19 +76,17 @@ function SqlEditorInner() {
       setElapsed(Math.floor((Date.now() - start) / 1000))
     }, 500)
 
-    const endpoint = engine === 'trino' ? '/api/trino/query' : '/api/starrocks/query'
+    const endpoint = engine === 'trino' ? '/trino/query' : '/starrocks/query'
     const body =
       engine === 'trino'
         ? { sql: trimmedSql, catalog, schema }
         : { sql: trimmedSql }
 
     try {
-      const res = await fetch(endpoint, {
+      const json = await apiCall<{ success: boolean; data?: QueryResult; error?: string }>(endpoint, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       })
-      const json = (await res.json()) as { success: boolean; data?: QueryResult; error?: string }
 
       if (!json.success) {
         setQueryError(json.error ?? 'Lỗi không xác định')

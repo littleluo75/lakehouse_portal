@@ -4,8 +4,8 @@
 export const GRAFANA_CONFIG = {
   baseUrl: process.env.NEXT_PUBLIC_GRAFANA_URL ?? 'https://grafana.lakehouse.local',
   internalUrl: process.env.INTERNAL_GRAFANA ?? 'http://kube-prometheus-stack-grafana.monitoring.svc.cluster.local:80',
-  adminUser: process.env.GRAFANA_ADMIN_USER ?? 'admin',
-  adminPassword: process.env.GRAFANA_ADMIN_PASSWORD ?? 'GrafanaAdminPass123!',
+  adminUser: process.env.GRAFANA_ADMIN_USER ?? '',
+  adminPassword: process.env.GRAFANA_ADMIN_PASSWORD ?? '',
   dashboards: {
     lakehouse: {
       uid: process.env.GRAFANA_DASHBOARD_UID ?? 'FILL_FROM_API',

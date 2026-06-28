@@ -6,6 +6,7 @@ import { GrafanaPanel } from './grafana-panel'
 import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
+import { apiCall } from '@/lib/api-client'
 import { ExternalLinkIcon, RefreshCwIcon } from 'lucide-react'
 import { GRAFANA_CONFIG } from '@/config/grafana'
 import type { ServiceHealth, GrafanaTimeRange } from '@/types/grafana'
@@ -73,13 +74,11 @@ const grafanaNotConfigured = uid === 'FILL_FROM_API' || panels.cpuUsage === 0
 export function ObservabilityClient() {
   const [timeRange, setTimeRange] = useState<GrafanaTimeRange>('now-3h')
 
-  const { data: healthData, isLoading: healthLoading, refetch } = useQuery<ServiceHealth[]>({
+  const { data: healthData, isLoading: healthLoading, refetch: reload } = useQuery<ServiceHealth[]>({
     queryKey: ['observability', 'health'],
     queryFn: async () => {
-      const res = await fetch('/api/observability/health')
-      const json = await res.json()
-      if (!json.success) throw new Error(json.error)
-      return json.data as ServiceHealth[]
+      const json = await apiCall<{ success: boolean; data: ServiceHealth[] }>('/observability/health')
+      return json.data
     },
     refetchInterval: 60_000,
   })
@@ -105,7 +104,7 @@ export function ObservabilityClient() {
               </button>
             ))}
           </div>
-          <Button variant="outline" size="sm" onClick={() => refetch()} className="gap-1">
+          <Button variant="outline" size="sm" onClick={() => reload()} className="gap-1">
             <RefreshCwIcon className="h-3.5 w-3.5" />
             Refresh
           </Button>

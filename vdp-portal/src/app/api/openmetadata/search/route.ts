@@ -1,14 +1,8 @@
 import { type NextRequest } from 'next/server'
 import { validateApiAuth } from '@/lib/api-auth'
-import { createInternalClient } from '@/lib/internal-client'
 import { handleApiError } from '@/lib/api-error-handler'
+import { openmetadataClient as omClient } from '@/lib/services'
 import type { OmSearchResponse } from '@/types/openmetadata'
-
-const omClient = createInternalClient({
-  baseUrl: process.env.INTERNAL_OPENMETADATA ?? '',
-  authType: 'basic',
-  basicCredentials: { username: 'admin', password: 'admin' },
-})
 
 export async function GET(request: NextRequest) {
   const { session, error } = await validateApiAuth(['DE', 'DS', 'DA', 'BA', 'Admin', 'SuperAdmin'])

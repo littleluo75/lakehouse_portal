@@ -1,14 +1,14 @@
-{{- define "vdp-portal.fullname" -}}
+{{- define "data-lighthouse.fullname" -}}
 {{- .Release.Name | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
-{{- define "vdp-portal.labels" -}}
+{{- define "data-lighthouse.labels" -}}
 helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version }}
-{{ include "vdp-portal.selectorLabels" . }}
+{{ include "data-lighthouse.selectorLabels" . }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end }}
 
-{{- define "vdp-portal.selectorLabels" -}}
-app.kubernetes.io/name: vdp-portal
+{{- define "data-lighthouse.selectorLabels" -}}
+app.kubernetes.io/name: data-lighthouse
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}

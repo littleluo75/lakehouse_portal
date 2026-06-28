@@ -9,6 +9,7 @@ import {
   type ColumnDef,
 } from '@tanstack/react-table'
 import { Button } from '@/components/ui/button'
+import { apiCall } from '@/lib/api-client'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
   Table,
@@ -59,20 +60,18 @@ export function SparkJobsClient() {
     data,
     isLoading,
     error,
-    refetch,
+    refetch: reload,
     isFetching,
   } = useQuery({
     queryKey: ['spark-applications'],
     queryFn: async () => {
-      const res = await fetch('/api/spark/applications?namespace=spark-operator')
-      if (!res.ok) throw new Error('Không thể tải danh sách Spark jobs')
-      const json = await res.json() as { success: boolean; data: SparkApplicationsResponse }
+      const json = await apiCall<{ success: boolean; data: SparkApplicationsResponse }>('/spark/applications?namespace=spark-operator')
       return json.data
     },
     refetchInterval: 30_000,
   })
 
-  const allItems: SparkApplication[] = data?.items ?? []
+  const allItems: SparkApplication[] = useMemo(() => data?.items ?? [], [data?.items])
 
   const filteredItems = useMemo(() => {
     if (stateFilter === 'all') return allItems
@@ -185,7 +184,7 @@ export function SparkJobsClient() {
         <Button
           variant="outline"
           size="sm"
-          onClick={() => refetch()}
+          onClick={() => reload()}
           disabled={isFetching}
         >
           <RefreshCwIcon className={`size-4 ${isFetching ? 'animate-spin' : ''}`} />

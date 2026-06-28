@@ -15,10 +15,11 @@ const errorMessages: Record<string, string> = {
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string }>
+  searchParams: Promise<{ error?: string; reason?: string; callbackUrl?: string }>
 }) {
-  const { error } = await searchParams
+  const { error, reason, callbackUrl } = await searchParams
   const errorMessage = error ? (errorMessages[error] ?? errorMessages.Default) : null
+  const redirectTo = callbackUrl && callbackUrl.startsWith('/') ? callbackUrl : '/'
 
   return (
     <main className="min-h-screen flex items-center justify-center bg-slate-50">
@@ -30,6 +31,11 @@ export default async function LoginPage({
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          {reason === 'session_expired' && (
+            <div className="text-amber-600 text-sm text-center p-3 bg-amber-50 rounded-md">
+              Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại để tiếp tục.
+            </div>
+          )}
           {errorMessage && (
             <Alert variant="destructive">
               <AlertDescription>{errorMessage}</AlertDescription>
@@ -41,7 +47,7 @@ export default async function LoginPage({
           <form
             action={async () => {
               'use server'
-              await signIn('keycloak', { redirectTo: '/' })
+              await signIn('keycloak', { redirectTo })
             }}
           >
             <Button type="submit" className="w-full" size="lg">

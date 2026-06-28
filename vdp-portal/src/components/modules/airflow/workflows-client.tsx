@@ -10,6 +10,7 @@ import {
   type ColumnDef,
 } from '@tanstack/react-table'
 import { useCurrentUser } from '@/hooks/use-current-user'
+import { apiCall } from '@/lib/api-client'
 import { RoleGuard } from '@/components/role-guard'
 import { DagStatsCards } from './dag-stats-cards'
 import { DagDetailDrawer } from './dag-detail-drawer'
@@ -46,14 +47,12 @@ export function WorkflowsClient() {
     data: dagsData,
     isLoading,
     error,
-    refetch,
+    refetch: reload,
     isFetching,
   } = useQuery({
     queryKey: ['airflow-dags'],
     queryFn: async () => {
-      const res = await fetch('/api/airflow/dags')
-      if (!res.ok) throw new Error('Không thể tải danh sách DAGs')
-      const json = await res.json() as { success: boolean; data: AirflowDagsResponse }
+      const json = await apiCall<{ success: boolean; data: AirflowDagsResponse }>('/airflow/dags')
       return json.data
     },
     refetchInterval: 30_000,
@@ -62,9 +61,7 @@ export function WorkflowsClient() {
   const { data: runsData, isLoading: isLoadingRuns } = useQuery({
     queryKey: ['airflow-dag-runs', selectedDag?.dag_id],
     queryFn: async () => {
-      const res = await fetch(`/api/airflow/dags/${selectedDag!.dag_id}/runs`)
-      if (!res.ok) throw new Error('Không thể tải lịch sử runs')
-      const json = await res.json() as { success: boolean; data: AirflowDagRunsResponse }
+      const json = await apiCall<{ success: boolean; data: AirflowDagRunsResponse }>(`/airflow/dags/${selectedDag!.dag_id}/runs`)
       return json.data
     },
     enabled: !!selectedDag,
@@ -72,12 +69,10 @@ export function WorkflowsClient() {
 
   const pauseMutation = useMutation({
     mutationFn: async ({ dagId, isPaused }: { dagId: string; isPaused: boolean }) => {
-      const res = await fetch(`/api/airflow/dags/${dagId}/pause`, {
+      await apiCall(`/airflow/dags/${dagId}/pause`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ is_paused: isPaused }),
       })
-      if (!res.ok) throw new Error('Không thể cập nhật trạng thái')
     },
     onSuccess: (_, { dagId, isPaused }) => {
       toast.success(`DAG ${dagId} đã được ${isPaused ? 'tạm dừng' : 'bật lại'}`)
@@ -88,12 +83,10 @@ export function WorkflowsClient() {
 
   const triggerMutation = useMutation({
     mutationFn: async ({ dagId, conf }: { dagId: string; conf: Record<string, unknown> }) => {
-      const res = await fetch(`/api/airflow/dags/${dagId}/trigger`, {
+      await apiCall(`/airflow/dags/${dagId}/trigger`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ conf }),
       })
-      if (!res.ok) throw new Error('Không thể kích hoạt DAG')
     },
     onSuccess: (_, { dagId }) => {
       toast.success(`DAG ${dagId} đã được kích hoạt`)
@@ -104,7 +97,7 @@ export function WorkflowsClient() {
     onError: () => toast.error('Không thể kích hoạt DAG'),
   })
 
-  const dags = dagsData?.dags ?? []
+  const dags = useMemo(() => dagsData?.dags ?? [], [dagsData?.dags])
 
   const allTags = useMemo(
     () => [...new Set(dags.flatMap((d) => d.tags.map((t) => t.name)))].sort(),
@@ -223,7 +216,7 @@ export function WorkflowsClient() {
         },
       },
     ],
-    [canManage, pauseMutation]
+    [pauseMutation]
   )
 
   const table = useReactTable({
@@ -244,7 +237,7 @@ export function WorkflowsClient() {
         <Button
           variant="outline"
           size="sm"
-          onClick={() => refetch()}
+          onClick={() => reload()}
           disabled={isFetching}
         >
           <RefreshCwIcon className={`size-4 ${isFetching ? 'animate-spin' : ''}`} />

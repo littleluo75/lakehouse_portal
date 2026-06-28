@@ -11,6 +11,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import type { DataAsset, OmSearchResponse } from '@/types/openmetadata'
 import type { ApiResponse } from '@/types'
 import { useDebounce } from './use-debounce'
+import { apiCall } from '@/lib/api-client'
 
 function AssetCard({ asset, onClick }: { asset: DataAsset; onClick: () => void }) {
   const visibleTags = asset.tags?.slice(0, 3) ?? []
@@ -123,10 +124,8 @@ export function CatalogClient() {
     queryKey: ['om-search', debouncedQuery],
     queryFn: async () => {
       const params = new URLSearchParams({ q: debouncedQuery, limit: '100', page: '0' })
-      const res = await fetch(`/api/openmetadata/search?${params}`)
-      if (!res.ok) throw new Error('Không thể tải dữ liệu catalog')
-      const json = await res.json() as ApiResponse<OmSearchResponse>
-      return json.data
+      const res = await apiCall<ApiResponse<OmSearchResponse>>(`/openmetadata/search?${params}`)
+      return res.data
     },
     staleTime: 30_000,
   })

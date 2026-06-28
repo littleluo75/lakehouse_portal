@@ -2,9 +2,9 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: {{ include "vdp-portal.fullname" . }}
+  name: {{ include "data-lighthouse.fullname" . }}
   labels:
-    {{- include "vdp-portal.labels" . | nindent 4 }}
+    {{- include "data-lighthouse.labels" . | nindent 4 }}
   annotations:
     {{- toYaml .Values.ingress.annotations | nindent 4 }}
 spec:
@@ -29,7 +29,7 @@ spec:
             pathType: {{ .pathType }}
             backend:
               service:
-                name: {{ include "vdp-portal.fullname" $ }}
+                name: {{ include "data-lighthouse.fullname" $ }}
                 port:
                   number: {{ $.Values.service.port }}
           {{- end }}

@@ -1,20 +1,8 @@
 import { validateApiAuth } from '@/lib/api-auth'
 import { queryTrino } from '@/lib/services/trino'
+import { validateSql } from '@/lib/sql-guard'
 
 const ALLOWED_ROLES = ['DE', 'DS', 'DA', 'Admin', 'SuperAdmin'] as const
-const SELECT_ONLY_ROLES = ['DA']
-const WRITE_KEYWORDS = /^\s*(DROP|TRUNCATE|DELETE|ALTER|CREATE|INSERT|UPDATE|GRANT|REVOKE)\b/i
-
-function validateQuery(sql: string, roles: string[]): { allowed: boolean; reason?: string } {
-  const isSelectOnly =
-    roles.some((r) => SELECT_ONLY_ROLES.includes(r)) &&
-    !roles.some((r) => ['DE', 'DS', 'Admin', 'SuperAdmin'].includes(r))
-
-  if (isSelectOnly && WRITE_KEYWORDS.test(sql.trim())) {
-    return { allowed: false, reason: 'Role DA chỉ được phép thực thi câu lệnh SELECT' }
-  }
-  return { allowed: true }
-}
 
 export async function POST(request: Request) {
   const { session, error } = await validateApiAuth([...ALLOWED_ROLES])
@@ -33,7 +21,7 @@ export async function POST(request: Request) {
   }
 
   const roles = session!.user.roles ?? []
-  const validation = validateQuery(sql, roles)
+  const validation = validateSql(sql, roles)
   if (!validation.allowed) {
     return Response.json({ success: false, error: validation.reason }, { status: 403 })
   }

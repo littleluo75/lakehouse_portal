@@ -4,6 +4,7 @@ import { useState, useCallback } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { useCurrentUser } from '@/hooks/use-current-user'
+import { apiCall } from '@/lib/api-client'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
@@ -77,9 +78,7 @@ export function NotebooksClient() {
   const { data: statusData, isLoading, error } = useQuery({
     queryKey: ['jupyter-server'],
     queryFn: async () => {
-      const res = await fetch('/api/jupyter/server')
-      if (!res.ok) throw new Error('Không thể lấy trạng thái workspace')
-      const json = await res.json() as { success: boolean; data: JupyterServerStatus }
+      const json = await apiCall<{ success: boolean; data: JupyterServerStatus }>('/jupyter/server')
       return json.data
     },
     refetchInterval: (query) => (query.state.data?.status === 'starting' ? 3000 : false),
@@ -87,15 +86,10 @@ export function NotebooksClient() {
 
   const startMutation = useMutation({
     mutationFn: async (profile: JupyterProfile) => {
-      const res = await fetch('/api/jupyter/server/start', {
+      await apiCall('/jupyter/server/start', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ profile }),
       })
-      if (!res.ok) {
-        const json = await res.json() as { error?: string }
-        throw new Error(json.error ?? 'Không thể khởi động workspace')
-      }
     },
     onSuccess: () => {
       toast.success('Workspace đang được khởi động')
@@ -107,8 +101,7 @@ export function NotebooksClient() {
 
   const stopMutation = useMutation({
     mutationFn: async () => {
-      const res = await fetch('/api/jupyter/server/stop', { method: 'DELETE' })
-      if (!res.ok) throw new Error('Không thể tắt workspace')
+      await apiCall('/jupyter/server/stop', { method: 'DELETE' })
     },
     onSuccess: () => {
       toast.success('Workspace đã được tắt')

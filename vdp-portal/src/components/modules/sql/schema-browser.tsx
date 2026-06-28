@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { ChevronRightIcon, DatabaseIcon, FolderIcon, TableIcon, Loader2Icon } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { apiCall } from '@/lib/api-client'
 
 interface SchemaBrowserProps {
   onTableClick: (catalog: string, schema: string, table: string) => void
@@ -31,8 +32,7 @@ export function SchemaBrowser({ onTableClick }: SchemaBrowserProps) {
   const { isLoading: isCatalogsLoading, error: catalogsError } = useQuery({
     queryKey: ['trino-catalogs'],
     queryFn: async () => {
-      const res = await fetch('/api/trino/catalogs')
-      const json = (await res.json()) as { success: boolean; data: string[] }
+      const json = await apiCall<{ success: boolean; data: string[] }>('/trino/catalogs')
       if (!json.success) throw new Error('Không thể tải catalogs')
       const initial: Record<string, CatalogNode> = {}
       json.data.forEach((name) => {
@@ -65,8 +65,7 @@ export function SchemaBrowser({ onTableClick }: SchemaBrowserProps) {
 
     setLoadingKey(catalog)
     try {
-      const res = await fetch(`/api/trino/schemas?catalog=${encodeURIComponent(catalog)}`)
-      const json = (await res.json()) as { success: boolean; data: string[] }
+      const json = await apiCall<{ success: boolean; data: string[] }>(`/trino/schemas?catalog=${encodeURIComponent(catalog)}`)
       if (!json.success) return
 
       const schemas: Record<string, SchemaNode> = {}
@@ -117,10 +116,9 @@ export function SchemaBrowser({ onTableClick }: SchemaBrowserProps) {
     const key = `${catalog}.${schema}`
     setLoadingKey(key)
     try {
-      const res = await fetch(
-        `/api/trino/tables?catalog=${encodeURIComponent(catalog)}&schema=${encodeURIComponent(schema)}`
+      const json = await apiCall<{ success: boolean; data: string[] }>(
+        `/trino/tables?catalog=${encodeURIComponent(catalog)}&schema=${encodeURIComponent(schema)}`
       )
-      const json = (await res.json()) as { success: boolean; data: string[] }
       if (!json.success) return
 
       setCatalogs((prev) => ({
