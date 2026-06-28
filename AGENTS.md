@@ -1,13 +1,13 @@
-# AGENTS.md — VDP Portal
+# AGENTS.md — VNPT Data Lighthouse
 
-> **Nguồn chân lý duy nhất** cho toàn bộ quá trình phát triển VDP Portal.
+> **Nguồn chân lý duy nhất** cho toàn bộ quá trình phát triển VNPT Data Lighthouse.
 > Mọi agent (Claude Code, Antigravity, AI khác) đều phải đọc file này trước khi thực thi bất kỳ task nào.
 
 ---
 
 ## 1. TỔNG QUAN DỰ ÁN
 
-**Tên sản phẩm:** VDP Portal (VNPT Data Platform Portal)
+**Tên sản phẩm:** VNPT Data Lighthouse
 **Mục tiêu:** Giao diện web thống nhất ("Single Pane of Glass") cho toàn bộ business users và data engineers của VNPT tương tác với VNPT Data Platform — thay thế việc truy cập từng tool riêng lẻ.
 **Domain:** `https://portal.lakehouse.local`
 **Ngôn ngữ output:** Tiếng Việt cho UI labels/messages, tiếng Anh cho technical terms, code, comments, và tên biến.
@@ -139,7 +139,7 @@ PUBLIC_JUPYTERHUB_URL=https://jupyterhub.lakehouse.local
 # Portal config
 NEXTAUTH_URL=https://portal.lakehouse.local
 NEXTAUTH_SECRET=<generate-random-32-chars>
-NEXT_PUBLIC_APP_NAME=VDP Portal
+NEXT_PUBLIC_APP_NAME=VNPT Data Lighthouse
 ```
 
 ---

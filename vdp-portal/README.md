@@ -1,6 +1,6 @@
-# VDP Portal — VNPT Data Platform Portal
+# VNPT Data Lighthouse
 
-Đây là thư mục mã nguồn chính của **VDP Portal** (Next.js 16 App Router). Toàn bộ tài liệu kỹ thuật, kiến trúc, hướng dẫn triển khai và đóng góp được quản lý tại thư mục gốc của repository.
+Đây là thư mục mã nguồn chính của **VNPT Data Lighthouse** (Next.js 16 App Router). Toàn bộ tài liệu kỹ thuật, kiến trúc, hướng dẫn triển khai và đóng góp được quản lý tại thư mục gốc của repository.
 
 Vui lòng xem chi tiết tại:
 - [Tài Liệu Tổng Quan (Root README)](../README.md)

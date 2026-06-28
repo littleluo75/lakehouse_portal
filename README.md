@@ -1,4 +1,4 @@
-# VDP Portal — VNPT Data Platform Portal
+# VNPT Data Lighthouse
 
 Giao diện web hợp nhất (Unified Web Portal) cho VNPT Data Platform (VDP), được xây dựng theo mô hình **Backend-For-Frontend (BFF)** nhằm đảm bảo bảo mật tối đa và tích hợp mượt mà với các dịch vụ lõi trong cụm Kubernetes RKE2.
 
@@ -21,7 +21,7 @@ Dự án được xây dựng trên nền tảng công nghệ hiện đại, đ�
 
 ## Prerequisites
 
-Để phát triển hoặc triển khai VDP Portal, hệ thống cần đáp ứng các yêu cầu sau:
+Để phát triển hoặc triển khai VNPT Data Lighthouse, hệ thống cần đáp ứng các yêu cầu sau:
 - **Node.js:** `>= 20.0.0`
 - **Package Manager:** `pnpm >= 9.0.0`
 - **Hạ tầng mạng:** Đã cấu hình phân dải DNS hoặc `/etc/hosts` trỏ các domain `*.lakehouse.local` tới Bastion Host (`10.167.70.16`).
@@ -58,7 +58,7 @@ Dự án được xây dựng trên nền tảng công nghệ hiện đại, đ�
 
 ## Architecture Overview
 
-VDP Portal áp dụng triệt để mô hình **Backend-For-Frontend (BFF)**. Trình duyệt của người dùng **không bao giờ** kết nối trực tiếp với các API nội bộ (trừ một số iframe/link tĩnh); mọi request đều đi qua lớp API Route của Next.js (`/api/*`), nơi thực hiện kiểm tra quyền (RBAC), đính kèm token xác thực (Bearer/Basic Auth) và proxy tới ClusterIP của các service trong Kubernetes.
+VNPT Data Lighthouse áp dụng triệt để mô hình **Backend-For-Frontend (BFF)**. Trình duyệt của người dùng **không bao giờ** kết nối trực tiếp với các API nội bộ (trừ một số iframe/link tĩnh); mọi request đều đi qua lớp API Route của Next.js (`/api/*`), nơi thực hiện kiểm tra quyền (RBAC), đính kèm token xác thực (Bearer/Basic Auth) và proxy tới ClusterIP của các service trong Kubernetes.
 
 ```text
 ┌──────────────────────────────────────────────────────────────────────────────────────┐

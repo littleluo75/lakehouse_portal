@@ -29,7 +29,7 @@ export function Sidebar({ userRoles = [] }: SidebarProps) {
   return (
     <aside className="fixed inset-y-0 left-0 z-50 w-60 bg-slate-900 text-slate-100 flex flex-col">
       <div className="flex items-center h-16 px-6 border-b border-slate-700">
-        <span className="font-bold text-lg tracking-tight">VDP Portal</span>
+        <span className="font-bold text-lg tracking-tight">VNPT Data Lighthouse</span>
       </div>
       <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
         {visibleItems.map(item => {

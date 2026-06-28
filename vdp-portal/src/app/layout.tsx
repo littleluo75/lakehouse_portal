@@ -16,8 +16,8 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: process.env.NEXT_PUBLIC_APP_NAME ?? 'VDP Portal',
-  description: 'VNPT Data Platform Portal — Single Pane of Glass',
+  title: process.env.NEXT_PUBLIC_APP_NAME ?? 'VNPT Data Lighthouse',
+  description: 'VNPT Data Lighthouse — Single Pane of Glass',
 }
 
 export default function RootLayout({

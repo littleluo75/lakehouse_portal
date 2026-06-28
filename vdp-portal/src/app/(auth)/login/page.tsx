@@ -24,7 +24,7 @@ export default async function LoginPage({
     <main className="min-h-screen flex items-center justify-center bg-slate-50">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold">VDP Portal</CardTitle>
+          <CardTitle className="text-2xl font-bold">VNPT Data Lighthouse</CardTitle>
           <CardDescription>
             VNPT Data Platform — Cổng quản trị dữ liệu
           </CardDescription>
