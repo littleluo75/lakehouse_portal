@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm build *)",
+      "Bash(mkdir -p /Users/anhbuitu/Desktop/VNPT/VNPTDataPlatform/lakehouse_portal/vdp-portal/src/app/api/airflow/dags/\\\\[dagId\\\\]/runs/\\\\[runId\\\\]/tasks)",
+      "Bash(mkdir -p /Users/anhbuitu/Desktop/VNPT/VNPTDataPlatform/lakehouse_portal/vdp-portal/src/app/api/airflow/dags/\\\\[dagId\\\\]/trigger)",
+      "Bash(mkdir -p /Users/anhbuitu/Desktop/VNPT/VNPTDataPlatform/lakehouse_portal/vdp-portal/src/app/api/airflow/dags/\\\\[dagId\\\\]/pause)"
+    ]
+  }
+}
