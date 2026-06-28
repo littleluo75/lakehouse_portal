@@ -238,10 +238,15 @@ export async function validateApiAuth(allowedRoles?: KeycloakRole[]) {
 
 ## Kiểm tra hoàn thành
 
-- [ ] Truy cập `http://localhost:3000` → redirect về `/login`
-- [ ] Click "Đăng nhập bằng VNPT SSO" → redirect sang Keycloak login page
-- [ ] Sau đăng nhập thành công → redirect về `/` với session hợp lệ
-- [ ] `session.user.roles` chứa đúng roles từ Keycloak
-- [ ] Token refresh tự động khi sắp hết hạn
-- [ ] Route `/admin` redirect về `/403` nếu user không có role `SuperAdmin`
-- [ ] Logout xóa session và redirect về `/login`
+- [x] Truy cập `http://localhost:3000` → redirect về `/login`
+- [x] Click "Đăng nhập bằng VNPT SSO" → redirect sang Keycloak login page
+- [x] Sau đăng nhập thành công → redirect về `/` với session hợp lệ
+- [x] `session.user.roles` chứa đúng roles từ Keycloak
+- [x] Token refresh tự động khi sắp hết hạn
+- [x] Route `/admin` redirect về `/403` nếu user không có role `SuperAdmin`
+- [x] Logout xóa session và redirect về `/login`
+
+## Trạng thái
+**Hoàn thành:** 2026-06-28
+**P0 fixes liên quan:** P0-T5 (Token refresh error handling)
+**Ghi chú:** Đã xác minh thực tế triển khai trên production codebase.

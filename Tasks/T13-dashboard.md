@@ -151,3 +151,8 @@ Hiển thị max 4 actions phù hợp với role hiện tại, dạng button car
 - [x] Layout responsive tại 1280px và 1920px
 - [x] Không có layout shift khi data load xong
 - [x] `pnpm build` không lỗi
+
+## Trạng thái
+**Hoàn thành:** 2026-06-28
+**P0 fixes liên quan:** P0-T2 (ClusterRole nodes & xóa mock data)
+**Ghi chú:** Đã xác minh thực tế triển khai trên production codebase.

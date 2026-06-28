@@ -139,8 +139,13 @@ Banner thông báo + nút "Mở Grafana Dashboard" link sang `https://grafana.la
 ## Kiểm tra hoàn thành
 - [x] Grafana panel IDs được lấy từ API thực (không hardcode ngẫu nhiên) — config qua env vars, BFF `/api/observability/dashboards` + `/panels`
 - [x] Health check trả về status thực của 6 services — `/api/observability/health` với Promise.allSettled + timeout 5s
-- [x] Panels grid hiển thị (iframe load được sau khi PR-3 merge) — GrafanaPanel component, tự fallback nếu uid=FILL_FROM_API
+- [ ] Panels grid hiển thị (iframe load được sau khi PR-3 merge) — GrafanaPanel component, tự fallback nếu uid=FILL_FROM_API <!-- blocked: cần PR-3 merge -->
 - [x] Time range selector cập nhật tất cả panels — state `timeRange` truyền xuống tất cả GrafanaPanel
 - [x] Fallback hiển thị nếu iframe bị block — GrafanaFallback + onError trên mỗi iframe
 - [x] Health status tự refresh mỗi 60 giây — `refetchInterval: 60_000` trong useQuery
 - [x] `pnpm build` không lỗi — build sạch, 32 routes
+
+## Trạng thái
+**Hoàn thành:** 2026-06-28
+**P0 fixes liên quan:** Không có
+**Ghi chú:** Item iframe Grafana đang blocked chờ infra merge PR-3. Các tính năng khác đã hoàn thành.

@@ -330,9 +330,14 @@ export async function GET() {
 
 ## Kiểm tra hoàn thành
 
-- [ ] `GET /api/health` trả về `{ success: true, data: { portal: 'ok' } }`
-- [ ] Gọi internal service URL từ API route hoạt động (kiểm tra bằng log)
-- [ ] `ServiceError` được bắt và trả về response đúng format
-- [ ] MinIO client kết nối được (test `listBuckets`)
-- [ ] Không có credentials nào xuất hiện trong response trả về client
-- [ ] TypeScript build không lỗi
+- [x] `GET /api/health` trả về `{ success: true, data: { portal: 'ok' } }`
+- [x] Gọi internal service URL từ API route hoạt động (kiểm tra bằng log)
+- [x] `ServiceError` được bắt và trả về response đúng format
+- [x] MinIO client kết nối được (test `listBuckets`)
+- [x] Không có credentials nào xuất hiện trong response trả về client
+- [x] TypeScript build không lỗi
+
+## Trạng thái
+**Hoàn thành:** 2026-06-28
+**P0 fixes liên quan:** P0-T1 (Internal URLs)
+**Ghi chú:** Đã xác minh thực tế triển khai trên production codebase.

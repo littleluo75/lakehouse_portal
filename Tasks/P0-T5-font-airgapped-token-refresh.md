@@ -245,14 +245,19 @@ const reason = searchParams.get('reason')
 ## Kiểm tra hoàn thành
 
 **Fix A:**
-- [ ] `src/app/layout.tsx` không còn `from 'next/font/google'`
-- [ ] `pnpm build` thành công không cần internet
-- [ ] Font hiển thị đúng trong browser (không bị fallback xấu)
+- [x] `src/app/layout.tsx` không còn `from 'next/font/google'`
+- [x] `pnpm build` thành công không cần internet
+- [x] Font hiển thị đúng trong browser (không bị fallback xấu)
 
 **Fix B:**
-- [ ] `Session` type có field `error?: 'RefreshAccessTokenError'`
-- [ ] Khi refresh fail: `session.error` được set, `accessToken` bị xóa
-- [ ] `validateApiAuth` trả 401 với `code: 'SESSION_EXPIRED'` khi `session.error` set
-- [ ] Client tự redirect về `/login?reason=session_expired` khi nhận code này
-- [ ] Trang login hiển thị thông báo "Phiên hết hạn" khi có query param
-- [ ] `pnpm build` không TypeScript error
+- [x] `Session` type có field `error?: 'RefreshAccessTokenError'`
+- [x] Khi refresh fail: `session.error` được set, `accessToken` bị xóa
+- [x] `validateApiAuth` trả 401 với `code: 'SESSION_EXPIRED'` khi `session.error` set
+- [x] Client tự redirect về `/login?reason=session_expired` khi nhận code này
+- [x] Trang login hiển thị thông báo "Phiên hết hạn" khi có query param
+- [x] `pnpm build` không TypeScript error
+
+## Trạng thái
+**Hoàn thành:** 2026-06-28
+**P0 fixes liên quan:** P0-T5 (Font airgapped & token refresh)
+**Ghi chú:** Đã hoàn thành toàn bộ checklist theo chuẩn production.

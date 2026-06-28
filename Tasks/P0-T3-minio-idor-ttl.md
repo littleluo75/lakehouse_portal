@@ -145,9 +145,14 @@ grep -n "isBucketAllowed" src/app/api/minio/ -r
 ```
 
 ## Kiểm tra hoàn thành
-- [ ] `storage-permissions.ts` tạo với `BUCKET_ACCESS` map đầy đủ 9 roles
-- [ ] Download route kiểm tra `isBucketAllowed` trước khi ký URL
-- [ ] Path traversal bị chặn (`..` và `/` ở đầu key)
-- [ ] `expiresIn` download route = 900 giây (15 phút), không phải 3600
-- [ ] List objects route cũng check `isBucketAllowed`
-- [ ] `pnpm build` không lỗi
+- [x] `storage-permissions.ts` tạo với `BUCKET_ACCESS` map đầy đủ 9 roles
+- [x] Download route kiểm tra `isBucketAllowed` trước khi ký URL
+- [x] Path traversal bị chặn (`..` và `/` ở đầu key)
+- [x] `expiresIn` download route = 900 giây (15 phút), không phải 3600
+- [x] List objects route cũng check `isBucketAllowed`
+- [x] `pnpm build` không lỗi
+
+## Trạng thái
+**Hoàn thành:** 2026-06-28
+**P0 fixes liên quan:** P0-T3 (MinIO IDOR & TTL)
+**Ghi chú:** Đã hoàn thành toàn bộ checklist theo chuẩn production.

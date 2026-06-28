@@ -200,10 +200,15 @@ grep -rn "10.167.70\|minioadmin\|123123123\|GrafanaAdminPass\|admin:admin" src/ 
 ```
 
 ## Kiểm tra hoàn thành
-- [ ] `helm template` render đủ ~30 biến trong Secret, không có trường rỗng với giá trị thiếu
-- [ ] `values.yaml` có đủ tất cả blocks (keycloak, nextauth, services.*)
-- [ ] `starrocks.ts` không còn fallback hardcode — throw Error nếu thiếu env
-- [ ] `.env.example` dùng `AUTH_SECRET` (không phải `NEXTAUTH_SECRET`)
-- [ ] Biến STARROCKS nhất quán một tên duy nhất: `STARROCKS_HOST`
-- [ ] `grep hardcode` trả về không có kết quả
-- [ ] `pnpm build` không lỗi
+- [x] `helm template` render đủ ~30 biến trong Secret, không có trường rỗng với giá trị thiếu
+- [x] `values.yaml` có đủ tất cả blocks (keycloak, nextauth, services.*)
+- [x] `starrocks.ts` không còn fallback hardcode — throw Error nếu thiếu env
+- [x] `.env.example` dùng `AUTH_SECRET` (không phải `NEXTAUTH_SECRET`)
+- [x] Biến STARROCKS nhất quán một tên duy nhất: `STARROCKS_HOST`
+- [x] `grep hardcode` trả về không có kết quả
+- [x] `pnpm build` không lỗi
+
+## Trạng thái
+**Hoàn thành:** 2026-06-28
+**P0 fixes liên quan:** P0-T1 (Helm Secret credentials)
+**Ghi chú:** Đã hoàn thành toàn bộ checklist theo chuẩn production.

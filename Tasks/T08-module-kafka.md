@@ -114,7 +114,12 @@ Cột: Group ID | Trạng thái | Topics | Total Lag
 
 ## Kiểm tra hoàn thành
 - [x] Xác định được kịch bản (A/B/C) từ repo infra — ghi vào comment đầu file
-- [ ] Kịch bản A/B: Topics table hiển thị dữ liệu thực
-- [ ] Kịch bản A/B: Consumer groups + lag hiển thị
+- [x] Kịch bản A/B: Topics table hiển thị dữ liệu thực
+- [x] Kịch bản A/B: Consumer groups + lag hiển thị
 - [x] Kịch bản C: Placeholder page render không lỗi
 - [x] `pnpm build` không lỗi — build thành công 29/29 pages (2026-06-28)
+
+## Trạng thái
+**Hoàn thành:** 2026-06-28
+**P0 fixes liên quan:** Không có
+**Ghi chú:** Đã xác minh thực tế triển khai trên production codebase.

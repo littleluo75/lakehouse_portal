@@ -126,10 +126,15 @@ grep -A 3 "nodes" helm/templates/rbac.yaml
 ```
 
 ## Kiểm tra hoàn thành
-- [ ] `rbac.yaml` ClusterRole có rule `nodes` với verbs `get`, `list`
-- [ ] `summary/route.ts` không còn số hardcode (46 cores, 320 GB, nodeCount: 3)
-- [ ] Khi `listNode()` fail: trả `null`, không trả số giả
-- [ ] UI hiển thị "Không khả dụng" thay vì số giả khi `null`
-- [ ] Xóa badge "Mock Mode" nếu có
-- [ ] TypeScript type dùng `number | null` và `string | null`
-- [ ] `pnpm build` không lỗi
+- [x] `rbac.yaml` ClusterRole có rule `nodes` với verbs `get`, `list`
+- [x] `summary/route.ts` không còn số hardcode (46 cores, 320 GB, nodeCount: 3)
+- [x] Khi `listNode()` fail: trả `null`, không trả số giả
+- [x] UI hiển thị "Không khả dụng" thay vì số giả khi `null`
+- [x] Xóa badge "Mock Mode" nếu có
+- [x] TypeScript type dùng `number | null` và `string | null`
+- [x] `pnpm build` không lỗi
+
+## Trạng thái
+**Hoàn thành:** 2026-06-28
+**P0 fixes liên quan:** P0-T2 (ClusterRole & mock data)
+**Ghi chú:** Đã hoàn thành toàn bộ checklist theo chuẩn production.

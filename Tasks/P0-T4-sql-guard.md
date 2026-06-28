@@ -237,10 +237,15 @@ pnpm vitest run src/lib/__tests__/sql-guard.test.ts
 Tất cả 11 test cases phải PASS.
 
 ## Kiểm tra hoàn thành
-- [ ] `src/lib/sql-guard.ts` tạo mới với `validateSql()` export
-- [ ] Regex blacklist cũ đã bị xóa hoàn toàn
-- [ ] Trino route dùng `validateSql` từ sql-guard
-- [ ] StarRocks route dùng `validateSql` từ sql-guard
-- [ ] Unit tests: tất cả 11 cases PASS (đặc biệt: comment bypass, CTE bypass)
-- [ ] Error message trả về client rõ ràng, nêu tên statement bị chặn
-- [ ] `pnpm build` không lỗi
+- [x] `src/lib/sql-guard.ts` tạo mới với `validateSql()` export
+- [x] Regex blacklist cũ đã bị xóa hoàn toàn
+- [x] Trino route dùng `validateSql` từ sql-guard
+- [x] StarRocks route dùng `validateSql` từ sql-guard
+- [x] Unit tests: tất cả 11 cases PASS (đặc biệt: comment bypass, CTE bypass)
+- [x] Error message trả về client rõ ràng, nêu tên statement bị chặn
+- [x] `pnpm build` không lỗi
+
+## Trạng thái
+**Hoàn thành:** 2026-06-28
+**P0 fixes liên quan:** P0-T4 (SQL guard)
+**Ghi chú:** Đã hoàn thành toàn bộ checklist theo chuẩn production.

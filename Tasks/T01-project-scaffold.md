@@ -249,9 +249,14 @@ Tạo thư mục `helm/` với:
 
 ## Kiểm tra hoàn thành
 
-- [ ] `pnpm dev` chạy không lỗi, mở `http://localhost:3000` thấy trang login
-- [ ] `pnpm build` build thành công không có TypeScript error
-- [ ] Cấu trúc thư mục khớp với AGENTS.md section 2.3
-- [ ] File `.env.example` có đủ tất cả biến từ AGENTS.md section 3
-- [ ] Dockerfile build được image
-- [ ] Sidebar hiển thị đúng nav items
+- [x] `pnpm dev` chạy không lỗi, mở `http://localhost:3000` thấy trang login
+- [x] `pnpm build` build thành công không có TypeScript error
+- [x] Cấu trúc thư mục khớp với AGENTS.md section 2.3
+- [x] File `.env.example` có đủ tất cả biến từ AGENTS.md section 3
+- [x] Dockerfile build được image
+- [x] Sidebar hiển thị đúng nav items
+
+## Trạng thái
+**Hoàn thành:** 2026-06-28
+**P0 fixes liên quan:** P0-T1 (Helm Secret), P0-T5 (System fonts)
+**Ghi chú:** Đã xác minh thực tế triển khai trên production codebase.

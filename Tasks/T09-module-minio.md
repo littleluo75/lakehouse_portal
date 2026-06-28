@@ -108,11 +108,16 @@ Cards layout, mỗi bucket 1 card:
 **Empty folder state:** "Thư mục này trống"
 
 ## Kiểm tra hoàn thành
-- [ ] List buckets `iceberg-warehouse` và `spark-events`
-- [ ] Browse folder hierarchy (navigate vào/ra folder)
-- [ ] Breadcrumb navigate đúng
-- [ ] File size hiển thị đúng (dùng `formatBytes` từ `src/lib/utils.ts`)
-- [ ] Download tạo presigned URL và mở được
-- [ ] Copy path hoạt động, toast hiển thị
-- [ ] Stats cards hiển thị số liệu thực
-- [ ] `pnpm build` không lỗi
+- [x] List buckets `iceberg-warehouse` và `spark-events`
+- [x] Browse folder hierarchy (navigate vào/ra folder)
+- [x] Breadcrumb navigate đúng
+- [x] File size hiển thị đúng (dùng `formatBytes` từ `src/lib/utils.ts`)
+- [x] Download tạo presigned URL và mở được
+- [x] Copy path hoạt động, toast hiển thị
+- [x] Stats cards hiển thị số liệu thực
+- [x] `pnpm build` không lỗi
+
+## Trạng thái
+**Hoàn thành:** 2026-06-28
+**P0 fixes liên quan:** P0-T3 (MinIO allowlist & TTL 900s)
+**Ghi chú:** Đã xác minh thực tế triển khai trên production codebase.

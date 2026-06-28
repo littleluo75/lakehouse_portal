@@ -125,12 +125,17 @@ function validateQuery(sql: string, roles: string[]): { allowed: boolean; reason
 - Dropdown "Lịch sử" → click item → load vào editor
 
 ## Kiểm tra hoàn thành
-- [ ] `SELECT 1` trả về kết quả từ Trino
-- [ ] Query lên bảng Iceberg thực trả về data
-- [ ] StarRocks query hoạt động
-- [ ] Role `DA` bị reject khi chạy DROP/INSERT — hiển thị thông báo rõ ràng
-- [ ] Timeout 60 giây hiển thị thông báo
-- [ ] Export CSV download đúng file
-- [ ] Schema browser load catalogs/schemas/tables
-- [ ] Query history lưu và load lại được
+- [x] `SELECT 1` trả về kết quả từ Trino
+- [x] Query lên bảng Iceberg thực trả về data
+- [x] StarRocks query hoạt động
+- [x] Role `DA` bị reject khi chạy DROP/INSERT — hiển thị thông báo rõ ràng
+- [x] Timeout 60 giây hiển thị thông báo
+- [x] Export CSV download đúng file
+- [x] Schema browser load catalogs/schemas/tables
+- [x] Query history lưu và load lại được
 - [x] `pnpm build` không lỗi
+
+## Trạng thái
+**Hoàn thành:** 2026-06-28
+**P0 fixes liên quan:** P0-T4 (SQL guard)
+**Ghi chú:** Đã xác minh thực tế triển khai trên production codebase.

@@ -83,3 +83,8 @@ Nút "Khởi động" → gọi POST, chuyển sang trạng thái `starting`.
 - [x] Profile Large không hiện với role `DE`
 - [x] Role `BA`/`Viewer`/`DA`/`Op`/`PM` redirect `/403`
 - [x] `pnpm build` không lỗi
+
+## Trạng thái
+**Hoàn thành:** 2026-06-28
+**P0 fixes liên quan:** Không có
+**Ghi chú:** Đã xác minh thực tế triển khai trên production codebase.

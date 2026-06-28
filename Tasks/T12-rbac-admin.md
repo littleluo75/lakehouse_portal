@@ -183,3 +183,8 @@ Cột: Avatar | Tên | Username | Email | Roles (badge list) | Actions
 - [x] Remove role hoạt động
 - [x] Không thể xóa role SuperAdmin của chính mình
 - [x] `pnpm build` không lỗi
+
+## Trạng thái
+**Hoàn thành:** 2026-06-28
+**P0 fixes liên quan:** P0-T2 (ClusterRole nodes)
+**Ghi chú:** Đã xác minh thực tế triển khai trên production codebase.

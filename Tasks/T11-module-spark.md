@@ -156,3 +156,8 @@ Cột: Tên job | Type (Scala/Python) | Trạng thái | Bắt đầu | Duration 
 - [x] Logs từ driver pod hiển thị (cần ServiceAccount đúng quyền)
 - [x] RBAC trong Helm chart có ClusterRole + ClusterRoleBinding
 - [x] `pnpm build` không lỗi
+
+## Trạng thái
+**Hoàn thành:** 2026-06-28
+**P0 fixes liên quan:** Không có
+**Ghi chú:** Đã xác minh thực tế triển khai trên production codebase.
