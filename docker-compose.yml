@@ -173,7 +173,7 @@ services:
         aliases:
           - portal.lakehouse.local
     ports:
-      - "3002:3000"
+      - "3000:3000"
     env_file:
       - ./vdp-portal/.env.docker.local
     depends_on:
