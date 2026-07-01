@@ -1,0 +1,174 @@
+{
+  "id": "lakehouse",
+  "realm": "lakehouse",
+  "enabled": true,
+  "displayName": "Lakehouse Internal Realm",
+  "displayNameHtml": "<div class=\"kc-logo-text\"><span>Lakehouse Platform</span></div>",
+  "roles": {
+    "realm": [
+      {
+        "id": "role-superadmin",
+        "name": "SuperAdmin",
+        "description": "Super Administrator - has all permissions",
+        "composite": true,
+        "composites": {
+          "realm": ["Admin", "Op", "DE", "DS", "DA", "BA", "PM", "Viewer"]
+        }
+      },
+      {
+        "id": "role-admin",
+        "name": "Admin",
+        "description": "Admin - full access to resources"
+      },
+      {
+        "id": "role-op",
+        "name": "Op",
+        "description": "Operator"
+      },
+      {
+        "id": "role-de",
+        "name": "DE",
+        "description": "Data Engineer"
+      },
+      {
+        "id": "role-ds",
+        "name": "DS",
+        "description": "Data Scientist"
+      },
+      {
+        "id": "role-da",
+        "name": "DA",
+        "description": "Data Analyst"
+      },
+      {
+        "id": "role-ba",
+        "name": "BA",
+        "description": "Business Analyst"
+      },
+      {
+        "id": "role-pm",
+        "name": "PM",
+        "description": "Project Manager"
+      },
+      {
+        "id": "role-viewer",
+        "name": "Viewer",
+        "description": "Viewer"
+      }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "airflow",
+      "name": "Apache Airflow",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "airflow-oidc-client-secret-123456",
+      "redirectUris": [
+        "https://airflow.lakehouse.local/*",
+        "http://localhost:8082/*"
+      ]
+    },
+    {
+      "clientId": "jupyterhub",
+      "name": "JupyterHub",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "jupyterhub-oidc-client-secret-123456",
+      "redirectUris": [
+        "https://jupyterhub.lakehouse.local/*",
+        "http://localhost:8081/*"
+      ]
+    },
+    {
+      "clientId": "vdp-portal",
+      "name": "VNPT Data Lighthouse Portal",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "vdp-portal-oidc-client-secret-123456",
+      "redirectUris": [
+        "https://portal.lakehouse.local/*",
+        "http://portal.lakehouse.local:3000/*",
+        "http://localhost:3000/*"
+      ],
+      "webOrigins": [
+        "https://portal.lakehouse.local",
+        "http://portal.lakehouse.local:3000",
+        "http://localhost:3000"
+      ],
+      "defaultClientScopes": [
+        "web-origins",
+        "acr",
+        "roles",
+        "profile",
+        "email"
+      ],
+      "protocolMappers": [
+        {
+          "name": "realm-roles-mapper",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-realm-role-mapper",
+          "consentRequired": false,
+          "config": {
+            "multivalued": "true",
+            "userinfo.token.claim": "true",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "claim.name": "realm_access.roles",
+            "jsonType.label": "String"
+          }
+        }
+      ]
+    }
+  ],
+  "users": [
+    {
+      "username": "admin",
+      "enabled": true,
+      "email": "admin@lakehouse.local",
+      "firstName": "Super",
+      "lastName": "Admin",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "admin",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["SuperAdmin"]
+    },
+    {
+      "username": "de_user",
+      "enabled": true,
+      "email": "de@lakehouse.local",
+      "firstName": "Data",
+      "lastName": "Engineer",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "admin",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["DE"]
+    },
+    {
+      "username": "da_user",
+      "enabled": true,
+      "email": "da@lakehouse.local",
+      "firstName": "Data",
+      "lastName": "Analyst",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "admin",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["DA"]
+    }
+  ]
+}

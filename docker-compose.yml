@@ -1,0 +1,190 @@
+services:
+  # ---------------------------------------------------------
+  # 1. STORAGE LAYER
+  # ---------------------------------------------------------
+  minio:
+    image: quay.io/minio/minio:RELEASE.2024-12-18T13-15-44Z
+    container_name: minio
+    networks:
+      lakehouse-net:
+        aliases:
+          - minio.lakehouse.local
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: 123123123
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio-data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      retries: 5
+
+  minio-init:
+    image: quay.io/minio/mc:RELEASE.2024-11-21T17-21-54Z
+    container_name: minio-init
+    networks: [lakehouse-net]
+    depends_on:
+      minio: { condition: service_healthy }
+    entrypoint: >
+      /bin/sh -c "
+      echo 'Waiting for MinIO...' &&
+      mc alias set myminio http://minio:9000 minioadmin 123123123 &&
+      mc mb --ignore-existing myminio/iceberg-warehouse &&
+      mc mb --ignore-existing myminio/spark-events &&
+      echo 'MinIO buckets initialized successfully.'"
+
+  # ---------------------------------------------------------
+  # 2. SSO AUTHENTICATION (KEYCLOAK)
+  # ---------------------------------------------------------
+  keycloak-db:
+    image: postgres:16-alpine
+    container_name: keycloak-db
+    networks: [lakehouse-net]
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: keycloakpassword
+    volumes:
+      - keycloak-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U keycloak -d keycloak"]
+      interval: 5s
+      retries: 5
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.6.2
+    container_name: keycloak
+    command: start-dev --import-realm
+    networks:
+      lakehouse-net:
+        aliases:
+          - keycloak.lakehouse.local
+    ports:
+      - "8080:8080"
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://keycloak-db:5432/keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: keycloakpassword
+      KC_HTTP_ENABLED: "true"
+      KC_HOSTNAME_STRICT: "false"
+      KC_PROXY_HEADERS: xforwarded
+      JAVA_OPTS_APPEND: "-Xms128m -Xmx384m"
+    volumes:
+      - ./docker-config/keycloak:/opt/keycloak/data/import:ro
+    depends_on:
+      keycloak-db: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/localhost/8080"]
+      interval: 10s
+      retries: 10
+
+  # ---------------------------------------------------------
+  # 3. METADATA CATALOGS & QUERY ENGINES
+  # ---------------------------------------------------------
+  nessie-db:
+    image: postgres:16-alpine
+    container_name: nessie-db
+    networks: [lakehouse-net]
+    environment:
+      POSTGRES_DB: nessie
+      POSTGRES_USER: nessie
+      POSTGRES_PASSWORD: nessiepassword
+    volumes:
+      - nessie-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nessie -d nessie"]
+      interval: 5s
+      retries: 5
+
+  nessie:
+    image: ghcr.io/projectnessie/nessie:0.108.0
+    container_name: nessie
+    networks:
+      lakehouse-net:
+        aliases:
+          - nessie.lakehouse.local
+    ports:
+      - "19120:19120"
+    environment:
+      NESSIE_VERSION_STORE_TYPE: JDBC2
+      QUARKUS_DATASOURCE_JDBC_URL: jdbc:postgresql://nessie-db:5432/nessie
+      QUARKUS_DATASOURCE_USERNAME: nessie
+      QUARKUS_DATASOURCE_PASSWORD: nessiepassword
+      JAVA_OPTS: "-Xms128m -Xmx256m"
+    depends_on:
+      nessie-db: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/q/health/ready"]
+      interval: 10s
+      retries: 6
+
+  trino:
+    image: trinodb/trino:480
+    container_name: trino
+    networks:
+      lakehouse-net:
+        aliases:
+          - trino.lakehouse.local
+    ports:
+      - "8083:8080"
+    volumes:
+      - ./docker-config/trino:/etc/trino:ro
+    depends_on:
+      nessie: { condition: service_healthy }
+      minio-init: { condition: service_completed_successfully }
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/v1/info"]
+      interval: 15s
+      retries: 8
+
+  starrocks-fe:
+    image: starrocks/fe-ubuntu:4.1-latest
+    container_name: starrocks-fe
+    command: ["/opt/starrocks/fe/bin/start_fe.sh"]
+    networks:
+      lakehouse-net:
+        aliases:
+          - starrocks.lakehouse.local
+    ports:
+      - "9030:9030"
+      - "8030:8030"
+    environment:
+      JAVA_OPTS: "-Xms256m -Xmx512m"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8030/api/health"]
+      interval: 15s
+      retries: 8
+
+  # ---------------------------------------------------------
+  # 4. VDP PORTAL (FRONTEND BFF LAYER)
+  # ---------------------------------------------------------
+  vdp-portal:
+    build:
+      context: ./vdp-portal
+      dockerfile: Dockerfile
+    container_name: vdp-portal
+    networks:
+      lakehouse-net:
+        aliases:
+          - portal.lakehouse.local
+    ports:
+      - "3002:3000"
+    env_file:
+      - ./vdp-portal/.env.docker.local
+    depends_on:
+      keycloak: { condition: service_healthy }
+      trino: { condition: service_healthy }
+
+networks:
+  lakehouse-net:
+    driver: bridge
+
+volumes:
+  minio-data:
+  keycloak-db-data:
+  nessie-db-data:
