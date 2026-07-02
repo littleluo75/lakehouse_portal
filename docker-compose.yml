@@ -19,23 +19,18 @@ services:
     volumes:
       - minio-data:/data
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
       interval: 10s
       retries: 5
 
   minio-init:
     image: quay.io/minio/mc:RELEASE.2024-11-21T17-21-54Z
     container_name: minio-init
-    networks: [lakehouse-net]
+    networks: [ lakehouse-net ]
     depends_on:
       minio: { condition: service_healthy }
     entrypoint: >
-      /bin/sh -c "
-      echo 'Waiting for MinIO...' &&
-      mc alias set myminio http://minio:9000 minioadmin 123123123 &&
-      mc mb --ignore-existing myminio/iceberg-warehouse &&
-      mc mb --ignore-existing myminio/spark-events &&
-      echo 'MinIO buckets initialized successfully.'"
+      /bin/sh -c " echo 'Waiting for MinIO...' && mc alias set myminio http://minio:9000 minioadmin 123123123 && mc mb --ignore-existing myminio/iceberg-warehouse && mc mb --ignore-existing myminio/spark-events && echo 'MinIO buckets initialized successfully.'"
 
   # ---------------------------------------------------------
   # 2. SSO AUTHENTICATION (KEYCLOAK)
@@ -43,7 +38,7 @@ services:
   keycloak-db:
     image: postgres:16-alpine
     container_name: keycloak-db
-    networks: [lakehouse-net]
+    networks: [ lakehouse-net ]
     environment:
       POSTGRES_DB: keycloak
       POSTGRES_USER: keycloak
@@ -51,7 +46,7 @@ services:
     volumes:
       - keycloak-db-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U keycloak -d keycloak"]
+      test: [ "CMD-SHELL", "pg_isready -U keycloak -d keycloak" ]
       interval: 5s
       retries: 5
 
@@ -79,7 +74,7 @@ services:
     depends_on:
       keycloak-db: { condition: service_healthy }
     healthcheck:
-      test: ["CMD-SHELL", "exec 3<>/dev/tcp/localhost/8080"]
+      test: [ "CMD-SHELL", "exec 3<>/dev/tcp/localhost/8080" ]
       interval: 10s
       retries: 10
 
@@ -89,7 +84,7 @@ services:
   nessie-db:
     image: postgres:16-alpine
     container_name: nessie-db
-    networks: [lakehouse-net]
+    networks: [ lakehouse-net ]
     environment:
       POSTGRES_DB: nessie
       POSTGRES_USER: nessie
@@ -97,7 +92,7 @@ services:
     volumes:
       - nessie-db-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U nessie -d nessie"]
+      test: [ "CMD-SHELL", "pg_isready -U nessie -d nessie" ]
       interval: 5s
       retries: 5
 
@@ -119,7 +114,7 @@ services:
     depends_on:
       nessie-db: { condition: service_healthy }
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/q/health/ready"]
+      test: [ "CMD", "curl", "-f", "http://localhost:9000/q/health/ready" ]
       interval: 10s
       retries: 6
 
@@ -138,14 +133,14 @@ services:
       nessie: { condition: service_healthy }
       minio-init: { condition: service_completed_successfully }
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/v1/info"]
+      test: [ "CMD", "curl", "-f", "http://localhost:8080/v1/info" ]
       interval: 15s
       retries: 8
 
   starrocks-fe:
     image: starrocks/fe-ubuntu:4.1-latest
     container_name: starrocks-fe
-    command: ["/opt/starrocks/fe/bin/start_fe.sh"]
+    command: [ "/opt/starrocks/fe/bin/start_fe.sh" ]
     networks:
       lakehouse-net:
         aliases:
@@ -156,7 +151,7 @@ services:
     environment:
       JAVA_OPTS: "-Xms256m -Xmx512m"
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8030/api/health"]
+      test: [ "CMD", "curl", "-f", "http://localhost:8030/api/health" ]
       interval: 15s
       retries: 8
 

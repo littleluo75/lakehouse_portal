@@ -31,7 +31,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         const keycloakProfile = profile as Record<string, unknown>
         const realmAccess = keycloakProfile.realm_access as { roles?: string[] }
-        token.roles = (realmAccess?.roles ?? []) as KeycloakRole[]
+        let roles = (realmAccess?.roles ?? []) as KeycloakRole[]
+        if (roles.length === 0 && account.access_token) {
+          try {
+            const payload = JSON.parse(Buffer.from(account.access_token.split('.')[1], 'base64').toString())
+            roles = (payload?.realm_access?.roles ?? []) as KeycloakRole[]
+          } catch {}
+        }
+        token.roles = roles
       }
 
       const expiresAt = (token.expiresAt as number | undefined) ?? 0
