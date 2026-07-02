@@ -1,0 +1,274 @@
+version: '3.8'
+
+# ==============================================================================
+# DOCKER COMPOSE: FULL ECOSYSTEM (TUNED FOR WINDOWS 11 PC - 64GB RAM)
+# ==============================================================================
+# Tổng tài nguyên RAM cấp phát cho toàn bộ stack này: ~16 GB - 18 GB RAM
+# Khuyến nghị cấu hình WSL2 trong C:\Users\<user>\.wslconfig: memory=24GB
+# ==============================================================================
+
+networks:
+  lakehouse-net:
+    driver: bridge
+
+volumes:
+  pg-data:
+  minio-data:
+  opensearch-data:
+
+services:
+  # ----------------------------------------------------------------------------
+  # 1. POSTGRESQL (Shared DB cho Keycloak, Nessie, Airflow, OpenMetadata)
+  # ----------------------------------------------------------------------------
+  postgres:
+    image: postgres:16-alpine
+    container_name: win64-postgres
+    restart: always
+    environment:
+      POSTGRES_DB: lakehouse
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password123
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+    networks:
+      - lakehouse-net
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+
+  # ----------------------------------------------------------------------------
+  # 2. KEYCLOAK SSO (Port 8080)
+  # ----------------------------------------------------------------------------
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.6.2
+    container_name: win64-keycloak
+    command: start-dev --import-realm
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
+      KC_DB_USERNAME: postgres
+      KC_DB_PASSWORD: password123
+      KC_HTTP_ENABLED: "true"
+      KC_HOSTNAME_STRICT: "false"
+      JAVA_OPTS_APPEND: "-Xms256m -Xmx768m"
+    ports:
+      - "8080:8080"
+    volumes:
+      - ../../docker-config/keycloak:/opt/keycloak/data/import:ro
+    depends_on:
+      - postgres
+    networks:
+      lakehouse-net:
+        aliases:
+          - keycloak.lakehouse.local
+    deploy:
+      resources:
+        limits:
+          memory: 1.2G
+
+  # ----------------------------------------------------------------------------
+  # 3. MINIO OBJECT STORAGE (Port API: 9000, Console: 9001)
+  # ----------------------------------------------------------------------------
+  minio:
+    image: quay.io/minio/minio:RELEASE.2024-12-18T13-15-44Z
+    container_name: win64-minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: 123123123
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio-data:/data
+    networks:
+      lakehouse-net:
+        aliases:
+          - minio.lakehouse.local
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+
+  minio-init:
+    image: quay.io/minio/mc:RELEASE.2024-11-21T17-21-54Z
+    container_name: win64-minio-init
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+      sleep 5;
+      mc alias set myminio http://minio:9000 minioadmin 123123123;
+      mc mb myminio/iceberg-warehouse --ignore-existing;
+      mc mb myminio/spark-events --ignore-existing;
+      exit 0;
+      "
+    networks:
+      - lakehouse-net
+
+  # ----------------------------------------------------------------------------
+  # 4. PROJECT NESSIE (ICEBERG REST CATALOG - Port 19120)
+  # ----------------------------------------------------------------------------
+  nessie:
+    image: ghcr.io/projectnessie/nessie:0.108.0
+    container_name: win64-nessie
+    environment:
+      NESSIE_VERSION_STORE_TYPE: JDBC2
+      QUARKUS_DATASOURCE_JDBC_URL: jdbc:postgresql://postgres:5432/nessie
+      QUARKUS_DATASOURCE_USERNAME: postgres
+      QUARKUS_DATASOURCE_PASSWORD: password123
+      JAVA_OPTS: "-Xms256m -Xmx512m"
+    ports:
+      - "19120:19120"
+    depends_on:
+      - postgres
+    networks:
+      lakehouse-net:
+        aliases:
+          - nessie.lakehouse.local
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+
+  # ----------------------------------------------------------------------------
+  # 5. TRINO QUERY ENGINE (Port 8083)
+  # ----------------------------------------------------------------------------
+  trino:
+    image: trinodb/trino:480
+    container_name: win64-trino
+    ports:
+      - "8083:8080"
+    volumes:
+      - ../../docker-config/trino:/etc/trino:ro
+    environment:
+      JAVA_TOOL_OPTIONS: "-Xmx3G"
+    depends_on:
+      - nessie
+      - minio-init
+    networks:
+      lakehouse-net:
+        aliases:
+          - trino.lakehouse.local
+    deploy:
+      resources:
+        limits:
+          memory: 4.5G
+
+  # ----------------------------------------------------------------------------
+  # 6. STARROCKS OLAP ENGINE (Port 8030 / 9030)
+  # ----------------------------------------------------------------------------
+  starrocks-fe:
+    image: starrocks/fe-ubuntu:4.1-latest
+    container_name: win64-starrocks-fe
+    command: [ "/opt/starrocks/fe/bin/start_fe.sh" ]
+    ports:
+      - "8030:8030"
+      - "9030:9030"
+    environment:
+      JAVA_OPTS: "-Xms512m -Xmx1.5G"
+    networks:
+      lakehouse-net:
+        aliases:
+          - starrocks.lakehouse.local
+    deploy:
+      resources:
+        limits:
+          memory: 2.5G
+
+  # ----------------------------------------------------------------------------
+  # 7. AIRFLOW WORKFLOW ENGINE (Port 8081)
+  # ----------------------------------------------------------------------------
+  airflow:
+    image: apache/airflow:2.10.2-python3.11
+    container_name: win64-airflow
+    command: webserver
+    environment:
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://postgres:password123@postgres:5432/airflow
+      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+    ports:
+      - "8081:8080"
+    depends_on:
+      - postgres
+    networks:
+      lakehouse-net:
+        aliases:
+          - airflow.lakehouse.local
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+
+  # ----------------------------------------------------------------------------
+  # 8. OPENSEARCH & OPENMETADATA CATALOG (Port 8585)
+  # ----------------------------------------------------------------------------
+  opensearch:
+    image: opensearchproject/opensearch:2.14.0
+    container_name: win64-opensearch
+    environment:
+      - discovery.type=single-node
+      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=StrongPassword123!
+      - OPENSEARCH_JAVA_OPTS=-Xms1g -Xmx1g
+      - DISABLE_SECURITY_PLUGIN=true
+    ports:
+      - "9200:9200"
+    volumes:
+      - opensearch-data:/usr/share/opensearch/data
+    networks:
+      - lakehouse-net
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+
+  openmetadata:
+    image: openmetadata/server:1.5.0
+    container_name: win64-openmetadata
+    environment:
+      DB_DRIVER_CLASS: org.postgresql.Driver
+      DB_SCHEME: postgresql
+      DB_USE_SSL: "false"
+      DB_USER: postgres
+      DB_PASSWORD: password123
+      DB_HOST: postgres
+      DB_PORT: 5432
+      ELASTICSEARCH_HOST: opensearch
+      ELASTICSEARCH_PORT: 9200
+      AUTHENTICATION_PROVIDER: no-auth
+    ports:
+      - "8585:8585"
+    depends_on:
+      - postgres
+      - opensearch
+    networks:
+      lakehouse-net:
+        aliases:
+          - openmetadata.lakehouse.local
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+
+  # ----------------------------------------------------------------------------
+  # 9. GRAFANA OBSERVABILITY (Port 3001)
+  # ----------------------------------------------------------------------------
+  grafana:
+    image: grafana/grafana:11.2.0
+    container_name: win64-grafana
+    ports:
+      - "3001:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    networks:
+      lakehouse-net:
+        aliases:
+          - grafana.lakehouse.local
+    deploy:
+      resources:
+        limits:
+          memory: 512M

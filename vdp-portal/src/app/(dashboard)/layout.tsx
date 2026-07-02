@@ -7,11 +7,11 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode
 }) {
-  await requireAuth()
+  const session = await requireAuth()
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <Sidebar />
+      <Sidebar userRoles={session?.user?.roles ?? []} />
       <Header />
       <main className="ml-60 pt-16 p-6">
         {children}
