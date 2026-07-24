@@ -19,8 +19,8 @@ export const openmetadataClient = createInternalClient({
   baseUrl: process.env.INTERNAL_OPENMETADATA!,
   authType: 'basic',
   basicCredentials: {
-    username: process.env.INTERNAL_OPENMETADATA_USERNAME ?? '',
-    password: process.env.INTERNAL_OPENMETADATA_PASSWORD ?? '',
+    username: process.env.INTERNAL_OPENMETADATA_USERNAME || 'admin',
+    password: process.env.INTERNAL_OPENMETADATA_PASSWORD || 'admin',
   },
   // TODO: sau khi enable OIDC cho OpenMetadata → đổi sang bearer
 })
@@ -34,7 +34,7 @@ export const grafanaClient = createInternalClient({
   baseUrl: process.env.INTERNAL_GRAFANA!,
   authType: 'basic',
   basicCredentials: {
-    username: process.env.GRAFANA_ADMIN_USER ?? '',
-    password: process.env.GRAFANA_ADMIN_PASSWORD ?? '',
+    username: process.env.GRAFANA_ADMIN_USER || 'admin',
+    password: process.env.GRAFANA_ADMIN_PASSWORD || 'password',
   },
 })

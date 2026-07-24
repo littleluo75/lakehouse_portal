@@ -14,6 +14,8 @@ declare module 'next-auth' {
 
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
+  trustHost: true,
   providers: [
     Keycloak({
       clientId: process.env.KEYCLOAK_CLIENT_ID!,
@@ -31,14 +33,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         const keycloakProfile = profile as Record<string, unknown>
         const realmAccess = keycloakProfile.realm_access as { roles?: string[] }
-        let roles = (realmAccess?.roles ?? []) as KeycloakRole[]
-        if (roles.length === 0 && account.access_token) {
-          try {
-            const payload = JSON.parse(Buffer.from(account.access_token.split('.')[1], 'base64').toString())
-            roles = (payload?.realm_access?.roles ?? []) as KeycloakRole[]
-          } catch {}
-        }
-        token.roles = roles
+        token.roles = (realmAccess?.roles ?? []) as KeycloakRole[]
+        return token
+      }
+
+      if (!token.accessToken || !token.refreshToken) {
+        return null
       }
 
       const expiresAt = (token.expiresAt as number | undefined) ?? 0
@@ -50,18 +50,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
 
     async session({ session, token }) {
-      // Refresh thất bại → báo lỗi để client buộc re-login, xóa token hết hạn
-      if (token.error === 'RefreshAccessTokenError') {
-        return {
-          ...session,
-          error: 'RefreshAccessTokenError' as const,
-          accessToken: '',
-          user: {
-            ...session.user,
-            roles: [],
-            accessToken: '',
-          },
-        }
+      if (!token || !token.accessToken || token.error === 'RefreshAccessTokenError') {
+        return null as any
       }
 
       session.accessToken = token.accessToken as string
@@ -114,6 +104,6 @@ async function refreshAccessToken(token: Record<string, unknown>) {
       expiresAt: Math.floor(Date.now() / 1000) + refreshed.expires_in,
     }
   } catch {
-    return { ...token, error: 'RefreshAccessTokenError' }
+    return null
   }
 }
