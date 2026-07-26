@@ -24,7 +24,7 @@ export function WorkspaceSwitcher({ workspaces, currentWorkspaceId }: { workspac
     if (workspaceId === currentWorkspaceId) return
     setPendingId(workspaceId)
     try {
-      await productApi.post('/__ba/workspace', { workspaceId })
+      await productApi.post('/ba-control/workspace', { workspaceId })
       startTransition(() => router.refresh())
     } finally {
       setPendingId(null)

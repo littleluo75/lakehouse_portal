@@ -24,7 +24,7 @@ export function PersonaSwitcher({ personas, currentPersonaId }: { personas: Pers
     if (personaId === currentPersonaId) return
     setPendingId(personaId)
     try {
-      await productApi.post('/__ba/persona', { personaId })
+      await productApi.post('/ba-control/persona', { personaId })
       startTransition(() => router.refresh())
     } finally {
       setPendingId(null)

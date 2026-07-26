@@ -13,7 +13,7 @@ export function ResetDemoDataButton() {
 
   async function handleReset() {
     try {
-      await productApi.post('/__ba/reset')
+      await productApi.post('/ba-control/reset')
       toast.success('Đã khôi phục dữ liệu demo về trạng thái ban đầu.')
       startTransition(() => router.refresh())
     } catch {
