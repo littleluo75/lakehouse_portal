@@ -51,7 +51,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
     async session({ session, token }) {
       if (!token || !token.accessToken || token.error === 'RefreshAccessTokenError') {
-        return null as any
+        // next-auth's declared return type omits `null`, but its runtime treats a
+        // null session as "invalidate" — callers (api-auth.ts, require-auth.ts)
+        // explicitly check `if (!session)` and depend on this behavior.
+        return null as unknown as typeof session
       }
 
       session.accessToken = token.accessToken as string
