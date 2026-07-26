@@ -1,20 +1,39 @@
 import * as k8s from '@kubernetes/client-node'
 import type { SparkApplication } from '@/types/spark'
+import { lazyClient } from '@/lib/lazy-client'
 
-const kc = new k8s.KubeConfig()
-
-try {
-  if (process.env.KUBERNETES_SERVICE_HOST) {
-    kc.loadFromCluster()
-  } else {
-    kc.loadFromDefault()
-  }
-} catch (err) {
-  console.warn('[k8s] Không thể nạp KubeConfig (chạy ngoài K8s cluster):', err)
+// KubeConfig loading and API client construction are deferred to first use
+// (not module load) so importing this module never touches kubeconfig/cluster
+// state. This keeps it safe to have on the module graph in BA Draft mode,
+// where these functions are never actually called.
+interface K8sClients {
+  customObjectsApi: k8s.CustomObjectsApi
+  coreApi: k8s.CoreV1Api
 }
 
-const customObjectsApi = kc.makeApiClient(k8s.CustomObjectsApi)
-const coreApi = kc.makeApiClient(k8s.CoreV1Api)
+let cached: K8sClients | null = null
+
+function buildClients(): K8sClients {
+  if (cached) return cached
+  const kc = new k8s.KubeConfig()
+  try {
+    if (process.env.KUBERNETES_SERVICE_HOST) {
+      kc.loadFromCluster()
+    } else {
+      kc.loadFromDefault()
+    }
+  } catch (err) {
+    console.warn('[k8s] Không thể nạp KubeConfig (chạy ngoài K8s cluster):', err)
+  }
+  cached = {
+    customObjectsApi: kc.makeApiClient(k8s.CustomObjectsApi),
+    coreApi: kc.makeApiClient(k8s.CoreV1Api),
+  }
+  return cached
+}
+
+const customObjectsApi = lazyClient(() => buildClients().customObjectsApi)
+const coreApi = lazyClient(() => buildClients().coreApi)
 
 export async function listSparkApplications(namespace = 'spark-operator'): Promise<SparkApplication[]> {
   try {

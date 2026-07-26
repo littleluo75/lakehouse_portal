@@ -7,7 +7,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "vitest run"
+    "test": "vitest run",
+    "dev:ba-draft": "node scripts/run-ba-draft.mjs dev",
+    "build:ba-draft": "node scripts/run-ba-draft.mjs build",
+    "start:ba-draft": "node scripts/run-ba-draft.mjs start"
   },
   "dependencies": {
     "@auth/core": "^0.34.3",
