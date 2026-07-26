@@ -2,9 +2,11 @@
 
 import { useRouter } from 'next/navigation'
 import { useState, useTransition } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -16,6 +18,7 @@ import { FolderOpen } from 'lucide-react'
 
 export function WorkspaceSwitcher({ workspaces, currentWorkspaceId }: { workspaces: Workspace[]; currentWorkspaceId: string }) {
   const router = useRouter()
+  const queryClient = useQueryClient()
   const [isPending, startTransition] = useTransition()
   const [pendingId, setPendingId] = useState<string | null>(null)
   const current = workspaces.find((w) => w.id === currentWorkspaceId) ?? workspaces[0]
@@ -25,6 +28,9 @@ export function WorkspaceSwitcher({ workspaces, currentWorkspaceId }: { workspac
     setPendingId(workspaceId)
     try {
       await productApi.post('/ba-control/workspace', { workspaceId })
+      // See PersonaSwitcher — workspace-scoped product queries are cached
+      // client-side by react-query and must be invalidated explicitly.
+      await queryClient.invalidateQueries()
       startTransition(() => router.refresh())
     } finally {
       setPendingId(null)
@@ -42,19 +48,21 @@ export function WorkspaceSwitcher({ workspaces, currentWorkspaceId }: { workspac
         <span>{current.name}</span>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-72">
-        <DropdownMenuLabel>Workspace</DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        {workspaces.map((ws) => (
-          <DropdownMenuItem
-            key={ws.id}
-            data-testid={`workspace-option-${ws.id}`}
-            className="cursor-pointer"
-            onClick={() => switchWorkspace(ws.id)}
-            disabled={pendingId === ws.id}
-          >
-            {ws.name}
-          </DropdownMenuItem>
-        ))}
+        <DropdownMenuGroup>
+          <DropdownMenuLabel>Workspace</DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          {workspaces.map((ws) => (
+            <DropdownMenuItem
+              key={ws.id}
+              data-testid={`workspace-option-${ws.id}`}
+              className="cursor-pointer"
+              onClick={() => switchWorkspace(ws.id)}
+              disabled={pendingId === ws.id}
+            >
+              {ws.name}
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuGroup>
       </DropdownMenuContent>
     </DropdownMenu>
   )

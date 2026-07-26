@@ -2,8 +2,13 @@
 // Trang placeholder — cập nhật lên Kịch bản A/B khi Kafka được deploy.
 import { AlertCircle } from 'lucide-react'
 import { requireAuth } from '@/lib/require-auth'
+import { DeferredRoutePlaceholder } from '@/components/ba-draft/deferred-route-placeholder'
+import { isBaDraftMode } from '@/lib/ba-draft/config'
 
 export default async function StreamsPage() {
+  if (isBaDraftMode()) {
+    return <DeferredRoutePlaceholder title="Streams (Kafka)" />
+  }
   await requireAuth(['DE', 'Op', 'Admin', 'SuperAdmin'])
 
   return (

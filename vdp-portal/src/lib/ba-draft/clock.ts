@@ -29,6 +29,16 @@ export function nextId(prefix: string): string {
   return `${prefix}-${String(current).padStart(4, '0')}`
 }
 
+/**
+ * Advances a prefix's counter so the next nextId() call continues past
+ * already-seeded literal IDs (e.g. seed data hardcodes "conn-0001".."conn-0005",
+ * so newly-created connections must start at "conn-0006", not collide back
+ * at "conn-0001"). Only raises the counter, never lowers it.
+ */
+export function seedCounter(prefix: string, seededCount: number): void {
+  counters[prefix] = Math.max(counters[prefix] ?? 0, seededCount)
+}
+
 /** Resets clock offset and all ID counters — called by reset-demo-data. */
 export function resetClock(): void {
   virtualOffsetMs = 0

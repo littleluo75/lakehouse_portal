@@ -2,9 +2,11 @@
 
 import { useRouter } from 'next/navigation'
 import { useState, useTransition } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -16,6 +18,7 @@ import { UserCircle } from 'lucide-react'
 
 export function PersonaSwitcher({ personas, currentPersonaId }: { personas: Persona[]; currentPersonaId: string }) {
   const router = useRouter()
+  const queryClient = useQueryClient()
   const [isPending, startTransition] = useTransition()
   const [pendingId, setPendingId] = useState<string | null>(null)
   const current = personas.find((p) => p.id === currentPersonaId) ?? personas[0]
@@ -25,6 +28,11 @@ export function PersonaSwitcher({ personas, currentPersonaId }: { personas: Pers
     setPendingId(personaId)
     try {
       await productApi.post('/ba-control/persona', { personaId })
+      // Every product page's react-query cache is scoped by the identity
+      // cookie server-side, not by a client-visible key, so a persona
+      // switch must invalidate everything — otherwise stale (30s) cached
+      // data from the previous persona keeps rendering.
+      await queryClient.invalidateQueries()
       startTransition(() => router.refresh())
     } finally {
       setPendingId(null)
@@ -43,20 +51,22 @@ export function PersonaSwitcher({ personas, currentPersonaId }: { personas: Pers
         <span className="text-xs text-slate-500">({current.role})</span>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-64">
-        <DropdownMenuLabel>Mock persona (BA Draft)</DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        {personas.map((persona) => (
-          <DropdownMenuItem
-            key={persona.id}
-            data-testid={`persona-option-${persona.id}`}
-            className="cursor-pointer flex flex-col items-start"
-            onClick={() => switchPersona(persona.id)}
-            disabled={pendingId === persona.id}
-          >
-            <span className="text-sm font-medium">{persona.name}</span>
-            <span className="text-xs text-slate-500">{persona.role}</span>
-          </DropdownMenuItem>
-        ))}
+        <DropdownMenuGroup>
+          <DropdownMenuLabel>Mock persona (BA Draft)</DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          {personas.map((persona) => (
+            <DropdownMenuItem
+              key={persona.id}
+              data-testid={`persona-option-${persona.id}`}
+              className="cursor-pointer flex flex-col items-start"
+              onClick={() => switchPersona(persona.id)}
+              disabled={pendingId === persona.id}
+            >
+              <span className="text-sm font-medium">{persona.name}</span>
+              <span className="text-xs text-slate-500">{persona.role}</span>
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuGroup>
       </DropdownMenuContent>
     </DropdownMenu>
   )

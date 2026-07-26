@@ -52,11 +52,14 @@ export function MappingDrawer({
 
   // Adjusting state from a prop/query change during render (not inside an
   // effect) per https://react.dev/learn/you-might-not-need-an-effect —
-  // avoids a cascading-render effect while still resetting the draft
-  // whenever the node being mapped changes.
-  const currentKey = nodeId ? `${pipelineId}:${nodeId}` : null
-  if (query.data && loadedKey !== currentKey) {
-    setLoadedKey(currentKey)
+  // resets the draft whenever the node being mapped changes, AND clears
+  // the "synced" marker on close so reopening the *same* node (e.g. after
+  // Cancel) forces a fresh resync instead of keeping stale local edits.
+  if (nodeId === null && loadedKey !== null) {
+    setLoadedKey(null)
+  }
+  if (nodeId !== null && query.data && loadedKey !== nodeId) {
+    setLoadedKey(nodeId)
     setDraft(query.data.mapping.mappings)
   }
 

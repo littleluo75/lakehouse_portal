@@ -1,4 +1,4 @@
-import { resetClock } from '../clock'
+import { resetClock, seedCounter } from '../clock'
 import * as seed from './seed'
 import type {
   AccessRequest,
@@ -59,7 +59,21 @@ function buildInitialState(): FixtureState {
   }
 }
 
+// Prefixes generated at runtime via nextId() that also appear as literal
+// seeded IDs — the counter must start past the seeded count so a freshly
+// created record can never collide with a seeded one (e.g. the first
+// generated connection must be "conn-0006", not re-mint "conn-0001").
+function seedIdCounters(initial: FixtureState): void {
+  seedCounter('mem', initial.memberships.length)
+  seedCounter('conn', initial.connections.length)
+  seedCounter('ar', initial.accessRequests.length)
+  seedCounter('run', initial.pipelineRuns.length)
+  seedCounter('cat', initial.catalogEntries.length)
+  seedCounter('qr', initial.queryRequests.length)
+}
+
 let state: FixtureState = buildInitialState()
+seedIdCounters(state)
 
 /** The single mutable in-memory fixture store for BA Draft mode. */
 export const fixtureStore = {
@@ -67,8 +81,9 @@ export const fixtureStore = {
     return state
   },
   reset(): void {
-    state = buildInitialState()
     resetClock()
+    state = buildInitialState()
+    seedIdCounters(state)
   },
   appendAudit(event: Omit<AuditEvent, 'id'> & { id?: string }): AuditEvent {
     const record: AuditEvent = { ...event, id: event.id ?? `audit-${String(state.auditEvents.length + 1).padStart(4, '0')}` }

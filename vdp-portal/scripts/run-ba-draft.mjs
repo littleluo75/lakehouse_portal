@@ -18,7 +18,11 @@ if (!['dev', 'build', 'start'].includes(mode)) {
 const projectRoot = path.resolve(fileURLToPath(import.meta.url), '..', '..')
 const nextBin = path.join(projectRoot, 'node_modules', 'next', 'dist', 'bin', 'next')
 
-const result = spawnSync(process.execPath, [nextBin, mode], {
+// BA Draft must default to loopback only, never LAN — WP-006B explicitly
+// defers LAN access to a later work package. `build` has no server to bind.
+const args = mode === 'build' ? [nextBin, mode] : [nextBin, mode, '-H', '127.0.0.1']
+
+const result = spawnSync(process.execPath, args, {
   stdio: 'inherit',
   cwd: projectRoot,
   env: { ...process.env, BA_DRAFT_MODE: 'true' },

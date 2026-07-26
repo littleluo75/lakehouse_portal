@@ -23,7 +23,7 @@ export default function RootLayout({
     <html lang="vi" className="h-full antialiased">
       <body className="min-h-full flex flex-col">
         {draftMode && <DraftBanner />}
-        <Providers>
+        <Providers baDraftMode={draftMode}>
           <TooltipProvider>
             {children}
             <Toaster />
