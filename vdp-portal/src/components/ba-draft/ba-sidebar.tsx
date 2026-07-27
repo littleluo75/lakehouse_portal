@@ -21,14 +21,19 @@ export function BaSidebar({ personaRole }: { personaRole: PersonaRole }) {
   const visibleItems = baNavItems.filter(
     (item) => item.roles.length === 0 || item.roles.includes(personaRole)
   )
+  const groups = [...new Set(visibleItems.map((item) => item.group))]
 
   return (
-    <aside className="fixed inset-y-0 left-0 z-50 w-60 bg-slate-900 text-slate-100 flex flex-col" style={{ top: '2rem' }}>
-      <div className="flex items-center h-16 px-6 border-b border-slate-700">
-        <span className="font-bold text-lg tracking-tight">VNPT Data Cloud Platform</span>
+    <aside className="ba-sidebar">
+      <div className="brand-block">
+        <div className="brand-mark">VD</div>
+        <div><strong>VNPT Data Cloud</strong><span>Enterprise Data Platform</span></div>
       </div>
-      <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1" data-testid="ba-nav">
-        {visibleItems.map((item) => {
+      <div className="sidebar-context"><span>Environment</span><strong>BA EVALUATION · LOCAL</strong></div>
+      <nav data-testid="ba-nav">
+        {groups.map((group) => <div className="nav-group" key={group}>
+          <div className="nav-group-label">{group}</div>
+          {visibleItems.filter((item) => item.group === group).map((item) => {
           const Icon = iconMap[item.icon]
           const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href))
           return (
@@ -37,16 +42,16 @@ export function BaSidebar({ personaRole }: { personaRole: PersonaRole }) {
               href={item.href}
               data-testid={`nav-item-${item.href.replace(/\//g, '') || 'home'}`}
               className={cn(
-                'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
-                isActive ? 'bg-slate-700 text-white' : 'text-slate-400 hover:bg-slate-800 hover:text-white'
+                'nav-link', isActive && 'active'
               )}
             >
               {Icon && <Icon className="h-4 w-4 shrink-0" />}
               {item.title}
             </Link>
           )
-        })}
+        })}</div>)}
       </nav>
+      <div className="sidebar-footer"><ShieldCheck /><div><strong>Mock boundary active</strong><span>/api/cp/v1 only</span></div></div>
     </aside>
   )
 }

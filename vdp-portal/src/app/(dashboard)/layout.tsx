@@ -15,12 +15,10 @@ export default async function DashboardLayout({
     // Mock persona/workspace identity — never touches next-auth/Keycloak.
     const identity = await getBaDraftIdentity()
     return (
-      <div className="min-h-screen bg-slate-50">
+      <div className="ba-app-shell">
         <BaSidebar personaRole={identity.persona.role} />
         <BaHeader identity={identity} />
-        <main className="ml-60 p-6" style={{ paddingTop: 'calc(4rem + 1.5rem)' }}>
-          {children}
-        </main>
+        <main className="ba-main"><div className="ba-content">{children}</div></main>
       </div>
     )
   }
