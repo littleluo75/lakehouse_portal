@@ -1,0 +1,14 @@
+node_modules
+.next
+.git
+Dockerfile
+Dockerfile.ba-draft
+README.md
+*.log
+.env
+.env.*
+!.env.example
+docker
+docker-compose.ba-draft.yml
+helm
+tsconfig.tsbuildinfo

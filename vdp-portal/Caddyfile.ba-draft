@@ -1,0 +1,38 @@
+# WP-006D: LAN edge for the BA Draft portal.
+# Local-only identities, Caddy internal CA, no public ACME, no admin API
+# exposed to the host.
+
+{
+	admin off
+	auto_https disable_redirects
+	# TLS clients omit SNI for literal IP addresses (RFC 6066) — curl/schannel
+	# and Chromium both do this. Without a default, Caddy has no SNI to match
+	# a site block against and aborts the handshake. Defaulting to the LAN IP
+	# makes the authoritative https://{$BA_DRAFT_LAN_IP}/ URL work for every
+	# client; a bare https://127.0.0.1/ dial will still show a name mismatch
+	# since https://localhost/ already covers host-only access.
+	default_sni {$BA_DRAFT_LAN_IP}
+}
+
+http://localhost, http://127.0.0.1, http://{$BA_DRAFT_LAN_IP}, http://vdcp-ba-draft.local {
+	redir https://{host}{uri} permanent
+}
+
+https://localhost, https://127.0.0.1, https://{$BA_DRAFT_LAN_IP}, https://vdcp-ba-draft.local {
+	tls internal
+
+	encode zstd gzip
+
+	header {
+		X-Content-Type-Options nosniff
+		Referrer-Policy no-referrer
+		X-Frame-Options DENY
+		-Server
+	}
+
+	reverse_proxy portal:3000 {
+		health_uri /api/cp/v1/ba-control/context
+		health_interval 10s
+		health_timeout 3s
+	}
+}

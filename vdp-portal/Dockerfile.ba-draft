@@ -1,0 +1,40 @@
+# WP-006D: BA Draft portal image for the Docker LAN HTTP/HTTPS deployment.
+# Built by compose.ba-draft.yaml; not published to any host port — reached
+# only through the Caddy edge container over the internal Docker network.
+
+FROM node:22.23.1-alpine AS base
+RUN corepack enable && corepack prepare pnpm@9.15.9 --activate
+
+FROM base AS deps
+WORKDIR /app
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+RUN pnpm install --frozen-lockfile --ignore-scripts
+
+FROM base AS builder
+WORKDIR /app
+ARG BA_DRAFT_MODE=true
+ENV BA_DRAFT_MODE=${BA_DRAFT_MODE}
+ENV NEXT_TELEMETRY_DISABLED=1
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+RUN CI=true pnpm build
+
+FROM base AS runner
+WORKDIR /app
+ENV NODE_ENV=production
+ENV BA_DRAFT_MODE=true
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV PORT=3000
+ENV HOSTNAME=0.0.0.0
+RUN addgroup -S nodejs && adduser -S nextjs -G nodejs
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
+USER nextjs
+EXPOSE 3000
+
+# Proves BA Draft mode + mock boundary are active without any real dependency.
+HEALTHCHECK --interval=10s --timeout=3s --start-period=20s --retries=6 \
+  CMD wget -q -O /dev/null http://127.0.0.1:3000/api/cp/v1/ba-control/context || exit 1
+
+CMD ["node", "server.js"]

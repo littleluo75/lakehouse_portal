@@ -36,6 +36,9 @@ yarn-error.log*
 # vercel
 .vercel
 
+# WP-006D: host-specific BA Draft Caddy internal CA (regenerated per deployment)
+/docs/ba-draft-caddy-root-ca.crt
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
