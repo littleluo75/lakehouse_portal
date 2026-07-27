@@ -1,0 +1,59 @@
+services:
+  portal:
+    image: vnpt-vdp-portal:ba-draft-r2
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        BA_DRAFT_MODE: "true"
+    container_name: vnpt-vdp-ba-draft
+    restart: unless-stopped
+    environment:
+      BA_DRAFT_MODE: "true"
+      NEXT_TELEMETRY_DISABLED: "1"
+    networks:
+      - isolated
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=64m
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    mem_limit: 768m
+    cpus: 2.0
+    labels:
+      project: PRJ-VDCP-001
+      work-package: WP-006B2
+      mode: ba-draft-mock-only
+
+  loopback-proxy:
+    image: nginx:alpine
+    container_name: vnpt-vdp-ba-loopback-proxy
+    restart: unless-stopped
+    user: "101:101"
+    entrypoint: ["nginx", "-c", "/etc/nginx/nginx.conf", "-g", "daemon off;"]
+    depends_on:
+      portal:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:3000:3000"
+    volumes:
+      - ./docker/ba-draft-loopback-proxy.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      - isolated
+      - edge
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=16m
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+
+networks:
+  isolated:
+    name: vnpt-vdp-ba-isolated
+    internal: true
+  edge:
+    name: vnpt-vdp-ba-edge

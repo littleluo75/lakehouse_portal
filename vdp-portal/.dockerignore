@@ -4,3 +4,6 @@ node_modules
 Dockerfile
 README.md
 *.log
+.env
+.env.*
+!.env.example
