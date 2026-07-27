@@ -34,6 +34,21 @@ const REJECTED_ENDPOINT_VARS = [
   'INTERNAL_GRAFANA',
   'STARROCKS_HOST',
   'NEXTAUTH_URL',
+  // Browser-exposed/public tool endpoints are equally unsafe in BA Draft.
+  // Keep both legacy PUBLIC_* names and Next.js client-exposed variants so
+  // an old Helm value or a new client integration cannot bypass fail-closed
+  // startup validation.
+  'PUBLIC_AIRFLOW_URL',
+  'PUBLIC_TRINO_URL',
+  'PUBLIC_GRAFANA_URL',
+  'PUBLIC_OPENMETADATA_URL',
+  'PUBLIC_JUPYTERHUB_URL',
+  'NEXT_PUBLIC_AIRFLOW_URL',
+  'NEXT_PUBLIC_TRINO_URL',
+  'NEXT_PUBLIC_GRAFANA_URL',
+  'NEXT_PUBLIC_OPENMETADATA_URL',
+  'NEXT_PUBLIC_JUPYTERHUB_URL',
+  'NEXT_PUBLIC_MINIO_URL',
 ]
 
 const REJECTED_CREDENTIAL_VARS = [

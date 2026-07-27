@@ -20,6 +20,17 @@ const ENV_KEYS = [
   'INTERNAL_AIRFLOW_API',
   'NEXTAUTH_URL',
   'AUTH_SECRET',
+  'PUBLIC_AIRFLOW_URL',
+  'PUBLIC_TRINO_URL',
+  'PUBLIC_GRAFANA_URL',
+  'PUBLIC_OPENMETADATA_URL',
+  'PUBLIC_JUPYTERHUB_URL',
+  'NEXT_PUBLIC_AIRFLOW_URL',
+  'NEXT_PUBLIC_TRINO_URL',
+  'NEXT_PUBLIC_GRAFANA_URL',
+  'NEXT_PUBLIC_OPENMETADATA_URL',
+  'NEXT_PUBLIC_JUPYTERHUB_URL',
+  'NEXT_PUBLIC_MINIO_URL',
 ]
 
 let saved: Record<string, string | undefined>
@@ -75,6 +86,24 @@ describe('findBaDraftEnvironmentViolations', () => {
     const names = violations.map((v) => v.variable)
     expect(names).toContain('INTERNAL_AIRFLOW_API')
     expect(names).toContain('STARROCKS_HOST')
+  })
+
+  test.each([
+    'PUBLIC_AIRFLOW_URL',
+    'PUBLIC_TRINO_URL',
+    'PUBLIC_GRAFANA_URL',
+    'PUBLIC_OPENMETADATA_URL',
+    'PUBLIC_JUPYTERHUB_URL',
+    'NEXT_PUBLIC_AIRFLOW_URL',
+    'NEXT_PUBLIC_TRINO_URL',
+    'NEXT_PUBLIC_GRAFANA_URL',
+    'NEXT_PUBLIC_OPENMETADATA_URL',
+    'NEXT_PUBLIC_JUPYTERHUB_URL',
+    'NEXT_PUBLIC_MINIO_URL',
+  ])('rejects client-exposed infrastructure endpoint variable %s', (variable) => {
+    process.env.BA_DRAFT_MODE = 'true'
+    process.env[variable] = 'https://tool.invalid'
+    expect(findBaDraftEnvironmentViolations().map((violation) => violation.variable)).toContain(variable)
   })
 
   test('rejects real/tool-admin credential variables', () => {
