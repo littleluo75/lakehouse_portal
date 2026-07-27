@@ -11,10 +11,7 @@ export default async function CatalogTablePage({
   const { id } = await params
   if (isBaDraftMode()) {
     return (
-      <div data-testid="ba-catalog-detail" data-catalog-id={id}>
-        <h1 className="mb-4 text-xl font-semibold">Data Catalog</h1>
-        <BaCatalogClient />
-      </div>
+      <div data-catalog-id={id}><BaCatalogClient catalogId={id} /></div>
     )
   }
   await requireAuth(['DE', 'DS', 'DA', 'BA', 'Admin', 'SuperAdmin'])

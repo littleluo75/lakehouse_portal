@@ -3,13 +3,15 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { GitMerge, Play, Sparkles, Filter, Download } from 'lucide-react'
+import { GitMerge, Play, Sparkles, Filter, Download, Minus, Plus, Maximize2, RotateCcw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { OperationStatusBadge, LoadingState, ErrorState } from '@/components/ba-draft/status-states'
 import { MappingDrawer } from '@/components/product/dag/mapping-drawer'
 import { productApi, ProductApiError } from '@/lib/product-api'
 import type { Pipeline, PipelineNode, PipelineRun } from '@/lib/ba-draft/fixtures/types'
+import { PageHeader, SectionCard, StatusChip, SummaryCard, SummaryGrid, Tabs } from '@/components/product/enterprise-page'
+import { pipelineExperience } from '@/lib/ba-draft/fixtures/experience'
 
 const NODE_ICON: Record<PipelineNode['type'], React.ComponentType<{ className?: string }>> = {
   ingest: Download,
@@ -53,35 +55,40 @@ export function PipelineDetailClient({ pipelineId }: { pipelineId: string }) {
   if (pipelineQuery.error) return <ErrorState message="Không thể tải pipeline." onRetry={() => pipelineQuery.refetch()} />
   const pipeline = pipelineQuery.data
   if (!pipeline) return null
+  const meta = pipelineExperience[pipeline.id]
 
   return (
     <div className="space-y-6" data-testid="pipeline-detail">
-      <div className="flex items-center justify-between">
+      <PageHeader eyebrow={`Data flow · ${pipeline.id} · ${meta.version}`} title={pipeline.name} description={`${meta.source} → ${meta.destination} · owner ${meta.owner} · ${meta.schedule}`} actions={<Button data-testid="trigger-pipeline-run" onClick={() => runMutation.mutate('success')} disabled={runMutation.isPending}><Play className="h-3.5 w-3.5" />{runMutation.isPending ? 'Đang chạy…' : 'Run pipeline'}</Button>} />
+      <div className="flex items-center gap-2"><StatusChip tone={pipeline.status === 'running' ? 'info' : 'success'}>{pipeline.status}</StatusChip><StatusChip tone="success">SLA on time</StatusChip><StatusChip tone="warning">1 quality warning</StatusChip></div>
+      <SummaryGrid columns={5}><SummaryCard label="Latest run" value="Succeeded" detail={meta.latest} tone="success"/><SummaryCard label="Duration" value={meta.duration} detail="P95 5m 02s" tone="info"/><SummaryCard label="Quality" value="98.7%" detail="24/24 critical rules" tone="success"/><SummaryCard label="Freshness" value="4h" detail={meta.freshness} tone="success"/><SummaryCard label="Active version" value={`v${pipeline.revision}`} detail="Published 06/01/2026" tone="info"/></SummaryGrid>
+      <Tabs items={['Overview','DAG','Run history','Configuration','Lineage','Quality','Alerts','Audit']} active={1}/>
+      <div className="hidden items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold">{pipeline.name}</h1>
           <p className="text-sm text-slate-500">rev {pipeline.revision} · {pipeline.status}</p>
         </div>
-        <Button data-testid="trigger-pipeline-run" onClick={() => runMutation.mutate('success')} disabled={runMutation.isPending}>
+        <Button data-testid="legacy-trigger-pipeline-run" onClick={() => runMutation.mutate('success')} disabled={runMutation.isPending}>
           <Play className="h-3.5 w-3.5 mr-1.5" />
           {runMutation.isPending ? 'Đang chạy…' : 'Run pipeline'}
         </Button>
       </div>
 
-      <div>
-        <h2 className="text-sm font-medium text-slate-500 mb-2">DAG nodes</h2>
-        <div className="flex flex-wrap gap-3" data-testid="dag-nodes">
+      <SectionCard title="DAG canvas" description="Connected execution graph · click mappable nodes to inspect field configuration" action={<div className="flex gap-1"><Button variant="outline" size="icon-sm"><Minus /></Button><Button variant="outline" size="icon-sm"><Plus /></Button><Button variant="outline" size="icon-sm"><Maximize2 /></Button></div>}>
+        <div className="dag-canvas" data-testid="dag-nodes">
           {pipeline.nodes.map((node) => {
             const Icon = NODE_ICON[node.type]
             const mappable = node.type === 'merge' || node.type === 'transform'
             return (
-              <Card key={node.id} className="w-56" data-testid={`dag-node-${node.id}`}>
-                <CardContent className="pt-4 space-y-2">
+              <Card key={node.id} className={`dag-node-card node-${node.type} ${node.id.includes('merge') ? 'selected' : ''}`} data-testid={`dag-node-${node.id}`}>
+                <CardContent className="space-y-2 p-3">
                   <div className="flex items-center gap-2 text-sm font-medium">
                     <Icon className="h-4 w-4 text-slate-500" />
                     {node.label}
                   </div>
                   <div className="text-xs text-slate-400">id: {node.id}</div>
                   <div className="text-xs text-slate-400">nguồn: {node.sourceCount}</div>
+                  <StatusChip tone={node.type === 'quality' ? 'warning' : 'success'}>{node.type === 'quality' ? 'warning · 1 rule' : 'succeeded'}</StatusChip>
                   {mappable && (
                     <Button
                       variant="outline"
@@ -96,22 +103,19 @@ export function PipelineDetailClient({ pipelineId }: { pipelineId: string }) {
               </Card>
             )
           })}
-        </div>
-      </div>
+        </div><div className="dag-canvas-footer"><span>4 nodes · 3 connections · validation passed with 1 warning</span><div><button>Mini map</button><button><RotateCcw /> Retry from selected node</button></div></div>
+      </SectionCard>
 
-      <div>
-        <h2 className="text-sm font-medium text-slate-500 mb-2">Run history</h2>
+      <SectionCard title="Run history" description="Desired and observed execution evidence linked to operations and audit">
         <div className="space-y-2" data-testid="pipeline-runs">
           {(runsQuery.data?.items ?? []).map((run) => (
-            <div key={run.id} className="flex items-center justify-between border rounded-md px-3 py-2 text-sm">
-              <span>
-                {run.id} {run.retryOfRunId && <span className="text-xs text-slate-400">(retry of {run.retryOfRunId})</span>}
-              </span>
-              <OperationStatusBadge status={run.status} />
+            <div key={run.id} className="flex items-center justify-between border-b px-4 py-3 text-xs last:border-0">
+              <span><strong className="font-mono">{run.id}</strong><span className="ml-3 text-slate-500">Scheduled · {new Date(run.startedAt).toLocaleString('vi-VN')} · {meta.duration}</span>{run.retryOfRunId && <span className="text-xs text-slate-400"> (retry of {run.retryOfRunId})</span>}</span>
+              <span className="flex items-center gap-3"><span className="text-slate-500">24/24 quality · corr-ba-{run.id.slice(-4)}</span><OperationStatusBadge status={run.status} /></span>
             </div>
           ))}
         </div>
-      </div>
+      </SectionCard>
 
       <MappingDrawer pipelineId={pipelineId} nodeId={mappingNodeId} onOpenChange={(open) => !open && setMappingNodeId(null)} />
     </div>
